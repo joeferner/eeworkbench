@@ -14,7 +14,7 @@ signals:
 public slots:
 
 protected:
-  virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
+  virtual void paintEvent(QPaintEvent *);
 };
 
 #endif // GRAPH_H
