@@ -1,0 +1,36 @@
+!set window,name,ArduinoSample
+!set window,description,'Sample plot using Arduino d2, d3, d4, d5, a0'
+
+?create plot
+!add graph main,0,0,1,1
+
+?add signals
+!addSignal main,d2,1,0,5
+!addSignal main,d3,1,0,5
+!addSignal main,d4,1,0,5
+!addSignal main,d5,1,0,5
+!addSignal main,a0,10,0,5
+
+?output data
+!data main,0,0,0,0,0
+!data main,0,0,0,1,100
+!data main,0,0,1,0,200
+!data main,0,0,1,1,300
+!data main,0,1,0,0,400
+!data main,0,1,0,1,500
+!data main,0,1,1,0,600
+!data main,0,1,1,1,700
+!data main,1,0,0,0,800
+!data main,1,0,0,1,900
+!data main,1,0,1,0,1000
+!data main,1,0,1,1,900
+!data main,1,1,0,0,800
+!data main,1,1,0,1,700
+!data main,1,1,1,0,600
+!data main,1,1,1,1,500
+
+?output data fast
+!beginData main,10
+00112233445566778899
+?output data fast complete
+

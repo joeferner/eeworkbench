@@ -1,13 +1,13 @@
+#include "GraphWidget.h"
 #include <QPainter>
 #include <QRect>
-#include "Graph.h"
 
-Graph::Graph(QWidget *parent) :
+GraphWidget::GraphWidget(QWidget *parent) :
   QWidget(parent)
 {
 }
 
-void Graph::paintEvent(QPaintEvent*)
+void GraphWidget::paintEvent(QPaintEvent*)
 {
   QPainter painter;
   painter.begin(this);

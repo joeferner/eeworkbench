@@ -14,9 +14,27 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         MainWindow.cpp \
-    plugins/graph/Graph.cpp
+    commands/CommandBase.cpp \
+    commands/AddCommand.cpp \
+    commands/SetCommand.cpp \
+    plugins/Plugin.cpp \
+    plugins/InputPlugin.cpp \
+    plugins/PluginManager.cpp \
+    plugins/WidgetPlugin.cpp \
+    plugins/fileInput/FileInputPlugin.cpp \
+    plugins/graph/GraphPlugin.cpp \
+    plugins/graph/GraphWidget.cpp
 
 HEADERS  += MainWindow.h \
-    plugins/graph/Graph.h
+    commands/CommandBase.h \
+    commands/AddCommand.h \
+    commands/SetCommand.h \
+    plugins/Plugin.h \
+    plugins/InputPlugin.h \
+    plugins/PluginManager.h \
+    plugins/WidgetPlugin.h \
+    plugins/fileInput/FileInputPlugin.h \
+    plugins/graph/GraphPlugin.h \
+    plugins/graph/GraphWidget.h
 
 FORMS    += MainWindow.ui
