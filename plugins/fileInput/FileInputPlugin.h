@@ -13,6 +13,7 @@ public:
 
   virtual void connect();
   virtual void disconnect();
+  virtual bool isConnected();
 
 private:
   void closeFile();

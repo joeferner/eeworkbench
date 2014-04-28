@@ -30,6 +30,10 @@ void FileInputPlugin::connect() {
   }
 }
 
+bool FileInputPlugin::isConnected() {
+  return m_file != NULL;
+}
+
 void FileInputPlugin::openFile(const QString &fileName) {
   QFile* file = new QFile(fileName);
   if(!file->exists()) {

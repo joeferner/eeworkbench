@@ -1,11 +1,12 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "plugins/graph/GraphWidget.h"
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   m_ui(new Ui::MainWindow),
-  m_connected(false)
+  m_inputReaderThread(NULL)
 {
   m_ui->setupUi(this);
 
@@ -21,14 +22,16 @@ MainWindow::~MainWindow()
   delete m_ui;
 }
 
-void MainWindow::on_actionConnect_triggered()
-{
+void MainWindow::on_actionConnect_triggered() {
+  m_ui->actionConnect->setEnabled(false);
+
   InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
 
-  if(m_connected) {
+  if(activeInputPlugin->isConnected()) {
     QObject::connect(activeInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
     activeInputPlugin->disconnect();
   } else {
+    stopInputReaderThread();
     QObject::connect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
     activeInputPlugin->connect();
   }
@@ -37,21 +40,36 @@ void MainWindow::on_actionConnect_triggered()
 void MainWindow::onInputPluginConnected() {
   InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
   QObject::disconnect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
-  m_connected = true;
   m_ui->actionConnect->setText("Disconnect");
+  m_ui->actionConnect->setEnabled(true);
+  m_inputReaderThread = new InputReaderThread(this, activeInputPlugin);
+  m_inputReaderThread->start();
 }
 
 void MainWindow::onInputPluginDisconnected() {
   InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
   QObject::disconnect(activeInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
-  m_connected = false;
   m_ui->actionConnect->setText("Connect");
+  m_ui->actionConnect->setEnabled(true);
+  stopInputReaderThread();
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+void MainWindow::closeEvent(QCloseEvent*) {
   m_pluginManager.getActiveInputPlugin()->disconnect();
 }
 
 void MainWindow::on_actionExit_triggered() {
   close();
+}
+
+void MainWindow::stopInputReaderThread() {
+  if(m_inputReaderThread == NULL) {
+    return;
+  }
+  m_inputReaderThread->stop();
+  m_inputReaderThread = NULL;
+}
+
+void MainWindow::onInputReaderThreadMessage() {
+  qDebug() << "MainWindow: onInputReaderThreadMessage";
 }
