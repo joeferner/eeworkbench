@@ -16,6 +16,7 @@ public:
   virtual bool isConnected();
   virtual bool readByte(uchar* ch);
   virtual qint64 available();
+  virtual QString getName() const { return "fileInput"; }
 
 private:
   void closeFile();

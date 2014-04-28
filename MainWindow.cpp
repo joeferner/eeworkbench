@@ -17,8 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
   m_descriptionLabel = new QLabel(this);
   statusBar()->addWidget(m_descriptionLabel);
 
-  GraphWidget* graph = new GraphWidget(this);
-  m_layout->addWidget(graph, 0, 0, 1, 1);
+  connect(this, SIGNAL(addWidgetPluginInstance(WidgetPluginInstance*)), this, SLOT(onAddWidgetPluginInstance(WidgetPluginInstance*)));
 }
 
 MainWindow::~MainWindow()
@@ -46,7 +45,7 @@ void MainWindow::onInputPluginConnected() {
   QObject::disconnect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
   m_ui->actionConnect->setText("Disconnect");
   m_ui->actionConnect->setEnabled(true);
-  m_inputReaderThread = new InputReaderThread(this, activeInputPlugin);
+  m_inputReaderThread = new InputReaderThread(&m_commandRunner, activeInputPlugin);
   m_inputReaderThread->start();
 }
 
@@ -74,8 +73,17 @@ void MainWindow::stopInputReaderThread() {
   m_inputReaderThread = NULL;
 }
 
-void MainWindow::onInputReaderThreadMessage(const QString& line) {
-  m_commandRunner.processLine(line);
+void MainWindow::runCommand(const QString& scope, const QString& functionName, QStringList args) {
+  if(scope == "window") {
+    runCommand(functionName, args);
+  } else {
+    WidgetPluginInstance* widgetPluginInstance = m_widgets.value(scope);
+    if(widgetPluginInstance == NULL) {
+      qWarning() << "Could not find scope" << scope;
+      return;
+    }
+    widgetPluginInstance->widgetPlugin->runCommand(widgetPluginInstance->widget, functionName, args);
+  }
 }
 
 void MainWindow::runCommand(const QString& functionName, QStringList args) {
@@ -83,10 +91,16 @@ void MainWindow::runCommand(const QString& functionName, QStringList args) {
     if(args.length() == 2) {
       runSetCommand(args.at(0), args.at(1));
     } else {
-      qDebug() << "invalid number of arguments for set. Expected 2, found" << args.length();
+      qWarning() << "invalid number of arguments for set. Expected 2, found" << args.length();
+    }
+  } else if(functionName == "add") {
+    if(args.length() == 6) {
+      runAddCommand(args.at(0), args.at(1), args.at(2).toInt(), args.at(3).toInt(), args.at(4).toInt(), args.at(5).toInt());
+    } else {
+      qWarning() << "invalid number of arguments for set. Expected 6, found" << args.length();
     }
   } else {
-    qDebug() << "invalid command" << functionName << args;
+    qWarning() << "invalid command" << functionName << args;
   }
 }
 
@@ -94,8 +108,37 @@ void MainWindow::runSetCommand(const QString& name, const QString& value) {
   if(name == "name") {
     setWindowTitle("EEWorkbench: " + value);
   } else if(name == "description") {
-      m_descriptionLabel->setText(value);
+    m_descriptionLabel->setText(value);
   } else {
-    qDebug() << "Unknown set variable" << name;
+    qWarning() << "Unknown set variable" << name;
   }
 }
+
+void MainWindow::runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan) {
+  const WidgetPlugin* widgetPlugin = m_pluginManager.getWidgetPlugin(type);
+  if(widgetPlugin == NULL) {
+    qWarning() << "Invalid type" << type << "for add.";
+    return;
+  }
+  WidgetPluginInstance* widgetPluginInstance = new WidgetPluginInstance();
+  widgetPluginInstance->widgetPlugin = widgetPlugin;
+  widgetPluginInstance->row = row;
+  widgetPluginInstance->column = column;
+  widgetPluginInstance->rowSpan = rowSpan;
+  widgetPluginInstance->columnSpan = columnSpan;
+  m_widgets.insert(name, widgetPluginInstance);
+  emit addWidgetPluginInstance(widgetPluginInstance);
+}
+
+void MainWindow::onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance) {
+  QWidget* widget = widgetPluginInstance->widgetPlugin->create();
+  widgetPluginInstance->widget = widget;
+
+  m_layout->addWidget(
+        widgetPluginInstance->widget,
+        widgetPluginInstance->row,
+        widgetPluginInstance->column,
+        widgetPluginInstance->rowSpan,
+        widgetPluginInstance->columnSpan);
+}
+

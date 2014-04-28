@@ -6,6 +6,10 @@ CommandRunner::CommandRunner(CommandRunnerWindow *window) :
 {
 }
 
+void CommandRunner::onInputReaderThreadMessage(const QString& line) {
+  processLine(line);
+}
+
 void CommandRunner::processLine(const QString& line) {
   if(line.length() == 0) {
     return;
@@ -41,11 +45,7 @@ void CommandRunner::runCommand(const QString& command) {
 
   QStringList argsList = splitArgs(args);
 
-  if(scope == "window") {
-    m_window->runCommand(functionName, argsList);
-  } else {
-    qDebug() << "scope:" << scope << " functionName: " << functionName << " args:" << argsList;
-  }
+  m_window->runCommand(scope, functionName, argsList);
 }
 
 QStringList CommandRunner::splitArgs(const QString& argsString) {

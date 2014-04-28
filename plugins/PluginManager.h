@@ -11,6 +11,7 @@ public:
   PluginManager();
 
   InputPlugin* getActiveInputPlugin();
+  const WidgetPlugin* getWidgetPlugin(const QString& name);
 
 private:
   int m_activeInputPlugin;

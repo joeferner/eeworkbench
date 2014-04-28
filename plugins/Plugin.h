@@ -10,6 +10,8 @@ class Plugin : public QObject
 public:
   Plugin();
   virtual ~Plugin();
+
+  virtual QString getName() const = 0;
 };
 
 #endif // PLUGIN_H
