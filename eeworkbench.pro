@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     plugins/WidgetPlugin.cpp \
     plugins/fileInput/FileInputPlugin.cpp \
     plugins/graph/GraphPlugin.cpp \
-    plugins/graph/GraphWidget.cpp
+    plugins/graph/GraphWidget.cpp \
+    plugins/fileInput/FileInputConnectDialog.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -35,6 +36,8 @@ HEADERS  += MainWindow.h \
     plugins/WidgetPlugin.h \
     plugins/fileInput/FileInputPlugin.h \
     plugins/graph/GraphPlugin.h \
-    plugins/graph/GraphWidget.h
+    plugins/graph/GraphWidget.h \
+    plugins/fileInput/FileInputConnectDialog.h
 
-FORMS    += MainWindow.ui
+FORMS    += MainWindow.ui \
+    plugins/fileInput/FileInputConnectDialog.ui

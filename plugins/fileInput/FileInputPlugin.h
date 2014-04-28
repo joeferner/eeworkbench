@@ -2,6 +2,7 @@
 #define FILEINPUTPLUGIN_H
 
 #include "../InputPlugin.h"
+#include <QFile>
 
 class FileInputPlugin : public InputPlugin
 {
@@ -12,6 +13,12 @@ public:
 
   virtual void connect();
   virtual void disconnect();
+
+private:
+  void closeFile();
+  void openFile(const QString &fileName);
+
+  QFile *m_file;
 };
 
 #endif // FILEINPUTPLUGIN_H

@@ -17,10 +17,15 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
+protected:
+  virtual void closeEvent(QCloseEvent *event);
+
 private slots:
   void on_actionConnect_triggered();
   void onInputPluginConnected();
   void onInputPluginDisconnected();
+
+  void on_actionExit_triggered();
 
 private:
   Ui::MainWindow *m_ui;

@@ -47,3 +47,11 @@ void MainWindow::onInputPluginDisconnected() {
   m_connected = false;
   m_ui->actionConnect->setText("Connect");
 }
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+  m_pluginManager.getActiveInputPlugin()->disconnect();
+}
+
+void MainWindow::on_actionExit_triggered() {
+  close();
+}
