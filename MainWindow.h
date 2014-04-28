@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QGridLayout>
+#include <QStringList>
 #include "plugins/PluginManager.h"
 #include "InputReaderThread.h"
 
@@ -19,6 +20,7 @@ public:
   ~MainWindow();
 
   virtual void onInputReaderThreadMessage(const QString& line);
+  void runCommand(const QString& command);
 
 protected:
   virtual void closeEvent(QCloseEvent *event);
@@ -37,6 +39,7 @@ private:
   InputReaderThread* m_inputReaderThread;
 
   void stopInputReaderThread();
+  QStringList splitArgs(const QString& args);
 };
 
 #endif // MAINWINDOW_H

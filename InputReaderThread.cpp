@@ -1,6 +1,6 @@
 #include "InputReaderThread.h"
 
-#define BUFFER_SIZE 200
+#define BUFFER_SIZE 1024
 
 InputReaderThread::InputReaderThread(InputReaderThreadTarget* inputReaderThreadTarget, InputPlugin* inputPlugin) :
   m_run(true),
