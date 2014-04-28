@@ -18,7 +18,7 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
-  virtual void onInputReaderThreadMessage();
+  virtual void onInputReaderThreadMessage(const QString& line);
 
 protected:
   virtual void closeEvent(QCloseEvent *event);

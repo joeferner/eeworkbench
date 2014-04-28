@@ -13,6 +13,8 @@ public:
   virtual void connect() = 0;
   virtual void disconnect() = 0;
   virtual bool isConnected() = 0;
+  virtual bool readByte(uchar* ch) = 0;
+  virtual qint64 available() = 0;
 
 signals:
   void connected();

@@ -14,6 +14,8 @@ public:
   virtual void connect();
   virtual void disconnect();
   virtual bool isConnected();
+  virtual bool readByte(uchar* ch);
+  virtual qint64 available();
 
 private:
   void closeFile();

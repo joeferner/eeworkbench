@@ -70,6 +70,6 @@ void MainWindow::stopInputReaderThread() {
   m_inputReaderThread = NULL;
 }
 
-void MainWindow::onInputReaderThreadMessage() {
-  qDebug() << "MainWindow: onInputReaderThreadMessage";
+void MainWindow::onInputReaderThreadMessage(const QString& line) {
+  qDebug() << "MainWindow: onInputReaderThreadMessage:" << line;
 }

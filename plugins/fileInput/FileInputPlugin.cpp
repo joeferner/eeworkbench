@@ -40,8 +40,26 @@ void FileInputPlugin::openFile(const QString &fileName) {
     delete file;
     return;
   }
+  if(!file->open(QIODevice::ReadOnly)) {
+    delete file;
+    return;
+  }
   qDebug() << "FileInputPlugin: Opened file:" << file->fileName();
   m_file = file;
+}
+
+bool FileInputPlugin::readByte(uchar* ch) {
+  if(!isConnected()) {
+    return false;
+  }
+  return m_file->getChar((char*)ch);
+}
+
+qint64 FileInputPlugin::available() {
+  if(!isConnected()) {
+    return 0;
+  }
+  return m_file->bytesAvailable();
 }
 
 void FileInputPlugin::closeFile() {
