@@ -6,12 +6,16 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   m_ui(new Ui::MainWindow),
-  m_inputReaderThread(NULL)
+  m_inputReaderThread(NULL),
+  m_commandRunner(this)
 {
   m_ui->setupUi(this);
 
   m_layout = new QGridLayout();
   centralWidget()->setLayout(m_layout);
+
+  m_descriptionLabel = new QLabel(this);
+  statusBar()->addWidget(m_descriptionLabel);
 
   GraphWidget* graph = new GraphWidget(this);
   m_layout->addWidget(graph, 0, 0, 1, 1);
@@ -71,69 +75,27 @@ void MainWindow::stopInputReaderThread() {
 }
 
 void MainWindow::onInputReaderThreadMessage(const QString& line) {
-  if(line.length() == 0) {
-    return;
-  }
-
-  QChar type = line.at(0);
-  if(type == '?') {
-    qDebug() << line.mid(1);
-  } else if(type == '!') {
-    runCommand(line.mid(1).trimmed());
-  } else {
-    qDebug() << "MainWindow: Unknown line type:" << line;
-  }
+  m_commandRunner.processLine(line);
 }
 
-void MainWindow::runCommand(const QString& command) {
-  int scopeAndFunctionNameIndex = command.indexOf(' ');
-  if(scopeAndFunctionNameIndex < 0) {
-    scopeAndFunctionNameIndex = command.length() - 1;
-  }
-  QString scopeAndFunctionName = command.left(scopeAndFunctionNameIndex);
-  QString args = command.mid(scopeAndFunctionNameIndex + 1);
-
-  int scopeIndex = scopeAndFunctionName.indexOf('.');
-  if(scopeIndex < 0) {
-    scopeIndex = 0;
-  }
-  QString scope = scopeAndFunctionName.left(scopeIndex);
-  if(scope == "") {
-    scope = "window";
-  }
-  QString functionName = scopeAndFunctionName.mid(scopeIndex + 1);
-
-  QStringList argsList = splitArgs(args);
-
-  qDebug() << "scope:" << scope << " functionName: " << functionName << " args:" << argsList;
-}
-
-QStringList MainWindow::splitArgs(const QString& argsString) {
-  QStringList results;
-
-  QString arg = "";
-  QChar startCh;
-  for(int i=0; i<argsString.length(); i++) {
-    QChar ch = argsString.at(i);
-    if(ch == '"' || ch == '\'') {
-      startCh = ch;
-      i++;
-      for(; i<argsString.length(); i++) {
-        ch = argsString.at(i);
-        if(ch == startCh) {
-          i++;
-          break;
-        }
-        arg.append(ch);
-      }
-    } else if(ch == ',') {
-      results.append(arg.trimmed());
-      arg.clear();
+void MainWindow::runCommand(const QString& functionName, QStringList args) {
+  if(functionName == "set") {
+    if(args.length() == 2) {
+      runSetCommand(args.at(0), args.at(1));
     } else {
-      arg.append(ch);
+      qDebug() << "invalid number of arguments for set. Expected 2, found" << args.length();
     }
+  } else {
+    qDebug() << "invalid command" << functionName << args;
   }
-  results.append(arg.trimmed());
+}
 
-  return results;
+void MainWindow::runSetCommand(const QString& name, const QString& value) {
+  if(name == "name") {
+    setWindowTitle("EEWorkbench: " + value);
+  } else if(name == "description") {
+      m_descriptionLabel->setText(value);
+  } else {
+    qDebug() << "Unknown set variable" << name;
+  }
 }

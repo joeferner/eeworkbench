@@ -4,14 +4,19 @@
 #include <QMainWindow>
 #include <QGridLayout>
 #include <QStringList>
+#include <QLabel>
 #include "plugins/PluginManager.h"
 #include "InputReaderThread.h"
+#include "CommandRunner.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, public InputReaderThreadTarget
+class MainWindow :
+    public QMainWindow,
+    public InputReaderThreadTarget,
+    public CommandRunnerWindow
 {
   Q_OBJECT
 
@@ -20,7 +25,7 @@ public:
   ~MainWindow();
 
   virtual void onInputReaderThreadMessage(const QString& line);
-  void runCommand(const QString& command);
+  virtual void runCommand(const QString& functionName, QStringList args);
 
 protected:
   virtual void closeEvent(QCloseEvent *event);
@@ -37,9 +42,11 @@ private:
   QGridLayout* m_layout;
   PluginManager m_pluginManager;
   InputReaderThread* m_inputReaderThread;
+  CommandRunner m_commandRunner;
+  QLabel* m_descriptionLabel;
 
   void stopInputReaderThread();
-  QStringList splitArgs(const QString& args);
+  void runSetCommand(const QString& name, const QString& value);
 };
 
 #endif // MAINWINDOW_H
