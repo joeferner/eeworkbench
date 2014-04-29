@@ -32,8 +32,6 @@ public:
   int getBufferWritePos() const { return m_bufferWritePos; }
   int getBufferAvailable() const { return m_bufferAvailable; }
 
-  static unsigned char MASKS[];
-
 private:
   GraphWidget* m_widget;
   QList<GraphSignal*> m_signals;
@@ -43,6 +41,8 @@ private:
   int m_bufferAvailable;
   int m_colorsCount;
   QColor* m_colors;
+
+  void writeByteToBuffer(unsigned char b);
 };
 
 #endif // GRAPHWIDGETPLUGININSTANCE_H

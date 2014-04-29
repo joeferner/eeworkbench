@@ -2,8 +2,6 @@
 #include "GraphWidget.h"
 #include <QDebug>
 
-unsigned char GraphWidgetPluginInstance::MASKS[] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
-
 GraphWidgetPluginInstance::GraphWidgetPluginInstance() :
   m_widget(NULL)
 {
@@ -51,32 +49,30 @@ void GraphWidgetPluginInstance::addData(QStringList args) {
   for(int i=0; i < qMin(args.length(), m_signals.length()); i++) {
     uint arg = args.at(i).toUInt();
     GraphSignal* signal = m_signals.at(i);
-    int signalBitsLeft = signal->bits;
-    while(signalBitsLeft > 0) {
-      int numberOfBitsToCopy = qMin(signalBitsLeft, 8 - tempBit);
-      unsigned char bitsToCopy = MASKS[numberOfBitsToCopy] & arg;
-      temp |= bitsToCopy << (7 - (tempBit - numberOfBitsToCopy));
-      arg = arg >> numberOfBitsToCopy;
-      signalBitsLeft -= numberOfBitsToCopy;
+    int signalBitsShift = signal->bits - 1;
+    while(signalBitsShift >= 0) {
+      unsigned char bit = (arg >> signalBitsShift) & 0x01;
+      temp |= bit << (7 - tempBit);
 
-      tempBit += numberOfBitsToCopy;
+      signalBitsShift--;
+      tempBit++;
       if(tempBit == 8) {
-        m_buffer[m_bufferWritePos] = temp;
-        m_bufferAvailable++;
-        if(m_bufferAvailable >= m_bufferSize) {
-          m_bufferAvailable = m_bufferSize;
-        }
-        m_bufferWritePos++;
-        if(m_bufferWritePos >= m_bufferSize) {
-          m_bufferWritePos = 0;
-        }
+        writeByteToBuffer(temp);
         temp = 0;
         tempBit = 0;
       }
     }
   }
 
-  m_buffer[m_bufferWritePos] = temp;
+  writeByteToBuffer(temp);
+
+  if(m_widget) {
+    m_widget->repaint();
+  }
+}
+
+void GraphWidgetPluginInstance::writeByteToBuffer(unsigned char b) {
+  m_buffer[m_bufferWritePos] = b;
   m_bufferAvailable++;
   if(m_bufferAvailable >= m_bufferSize) {
     m_bufferAvailable = m_bufferSize;
@@ -84,10 +80,6 @@ void GraphWidgetPluginInstance::addData(QStringList args) {
   m_bufferWritePos++;
   if(m_bufferWritePos >= m_bufferSize) {
     m_bufferWritePos = 0;
-  }
-
-  if(m_widget) {
-    m_widget->repaint();
   }
 }
 

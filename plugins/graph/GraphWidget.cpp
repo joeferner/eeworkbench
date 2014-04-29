@@ -43,14 +43,12 @@ void GraphWidget::paintEvent(QPaintEvent*)
     int bufferTempBit = 0;
     for(int s = 0; s < signalCount; s++) {
       const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
-      int signalBitsLeft = signal->bits;
       uint temp = 0;
 
-      while(signalBitsLeft > 0) {
-        int bitsToCopy = qMin(signalBitsLeft, 8 - bufferTempBit);
-        temp |= ((bufferTemp >> (7 - bufferTempBit)) & GraphWidgetPluginInstance::MASKS[bitsToCopy]) << (signal->bits - signalBitsLeft);
-        signalBitsLeft -= bitsToCopy;
-        bufferTempBit += bitsToCopy;
+      for(int signalBit=0; signalBit < signal->bits; signalBit++) {
+        temp = (temp << 1) | (bufferTemp & 0x80 ? 0x01 : 0x00);
+        bufferTemp = bufferTemp << 1;
+        bufferTempBit++;
         if(bufferTempBit == 8) {
           bufferIndex++;
           bufferCount++;
