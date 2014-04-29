@@ -20,10 +20,11 @@ public:
   GraphWidgetPluginInstance();
   virtual ~GraphWidgetPluginInstance();
 
-  virtual void runCommand(const QString& functionName, QStringList args);
+  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
   virtual QWidget* getWidget();
   void addSignal(const QString& name, int bits, float scaleMin, float scaleMax);
   void addData(QStringList args);
+  void beginData(InputReaderThread* inputReaderThread, int numberOfBytes);
 
   int getSignalCount() const { return m_signals.length(); }
   const GraphSignal* getSignal(int i) const { return m_signals.at(i); }
@@ -43,6 +44,7 @@ private:
   QColor* m_colors;
 
   void writeByteToBuffer(unsigned char b);
+  void incrementBufferWritePos(int i);
 };
 
 #endif // GRAPHWIDGETPLUGININSTANCE_H

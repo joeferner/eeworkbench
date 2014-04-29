@@ -25,11 +25,15 @@ void InputReaderThread::run() {
 
     if(b == '\n') {
       QString str = m_ringBuffer.readAsString();
-      m_inputReaderThreadTarget->onInputReaderThreadMessage(str);
+      m_inputReaderThreadTarget->onInputReaderThreadMessage(this, str);
     } else {
       m_ringBuffer.write(b);
     }
   }
+}
+
+qint64 InputReaderThread::read(unsigned char* buffer, qint64 bytesToRead) {
+  return m_inputPlugin->read(buffer, bytesToRead);
 }
 
 void InputReaderThread::stop() {

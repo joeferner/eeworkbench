@@ -5,9 +5,11 @@
 #include "plugins/InputPlugin.h"
 #include "utils/RingBuffer.h"
 
+class InputReaderThread;
+
 class InputReaderThreadTarget {
 public:
-  virtual void onInputReaderThreadMessage(const QString& line) = 0;
+  virtual void onInputReaderThreadMessage(InputReaderThread* inputReaderThread, const QString& line) = 0;
 };
 
 class InputReaderThread : public QThread
@@ -16,6 +18,7 @@ class InputReaderThread : public QThread
 
 public:
   InputReaderThread(InputReaderThreadTarget* inputReaderThreadTarget, InputPlugin* inputPlugin);
+  qint64 read(unsigned char* buffer, qint64 bytesToRead);
 
   void stop();
 

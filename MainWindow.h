@@ -25,7 +25,7 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
-  virtual void runCommand(const QString& scope, const QString& functionName, QStringList args);
+  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& scope, const QString& functionName, QStringList args);
 
 protected:
   virtual void closeEvent(QCloseEvent *event);

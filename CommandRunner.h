@@ -7,7 +7,7 @@
 class CommandRunnerWindow
 {
 public:
-  virtual void runCommand(const QString& scope, const QString& functionName, QStringList args) = 0;
+  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& scope, const QString& functionName, QStringList args) = 0;
 };
 
 class CommandRunner : public InputReaderThreadTarget
@@ -15,9 +15,9 @@ class CommandRunner : public InputReaderThreadTarget
 public:
   CommandRunner(CommandRunnerWindow *window);
 
-  void processLine(const QString& line);
-  void runCommand(const QString& command);
-  virtual void onInputReaderThreadMessage(const QString& line);
+  void processLine(InputReaderThread* inputReaderThread, const QString& line);
+  void runCommand(InputReaderThread* inputReaderThread, const QString& command);
+  virtual void onInputReaderThreadMessage(InputReaderThread* inputReaderThread, const QString& line);
 
 private:
   CommandRunnerWindow *m_window;

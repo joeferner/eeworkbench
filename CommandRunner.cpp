@@ -6,11 +6,11 @@ CommandRunner::CommandRunner(CommandRunnerWindow *window) :
 {
 }
 
-void CommandRunner::onInputReaderThreadMessage(const QString& line) {
-  processLine(line);
+void CommandRunner::onInputReaderThreadMessage(InputReaderThread* inputReaderThread, const QString& line) {
+  processLine(inputReaderThread, line);
 }
 
-void CommandRunner::processLine(const QString& line) {
+void CommandRunner::processLine(InputReaderThread* inputReaderThread, const QString& line) {
   if(line.length() == 0) {
     return;
   }
@@ -19,13 +19,13 @@ void CommandRunner::processLine(const QString& line) {
   if(type == '?') {
     qDebug() << line.mid(1);
   } else if(type == '!') {
-    runCommand(line.mid(1).trimmed());
+    runCommand(inputReaderThread, line.mid(1).trimmed());
   } else {
     qDebug() << "MainWindow: Unknown line type:" << line;
   }
 }
 
-void CommandRunner::runCommand(const QString& command) {
+void CommandRunner::runCommand(InputReaderThread* inputReaderThread, const QString& command) {
   int scopeAndFunctionNameIndex = command.indexOf(' ');
   if(scopeAndFunctionNameIndex < 0) {
     scopeAndFunctionNameIndex = command.length() - 1;
@@ -45,7 +45,7 @@ void CommandRunner::runCommand(const QString& command) {
 
   QStringList argsList = splitArgs(args);
 
-  m_window->runCommand(scope, functionName, argsList);
+  m_window->runCommand(inputReaderThread, scope, functionName, argsList);
 }
 
 QStringList CommandRunner::splitArgs(const QString& argsString) {

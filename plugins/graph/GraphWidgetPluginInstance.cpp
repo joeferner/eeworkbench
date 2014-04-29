@@ -25,7 +25,7 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
   delete m_widget;
 }
 
-void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringList args) {
+void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args) {
   if(functionName == "addSignal") {
     if(args.length() == 4) {
       addSignal(args.at(0), args.at(1).toInt(), args.at(2).toFloat(), args.at(3).toFloat());
@@ -38,8 +38,23 @@ void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringL
     } else {
       qWarning() << "Graph: data: Invalid number of arguments. Expected" << m_signals.length() << ", found " << args.length();
     }
+  } else if(functionName == "beginData") {
+    if(args.length() == 1) {
+      beginData(inputReaderThread, args.at(0).toInt());
+    } else {
+      qWarning() << "Graph: beginData: Invalid number of arguments. Expected 1, found " << args.length();
+    }
   } else {
     qWarning() << "Graph: Unknown Command" << functionName << args;
+  }
+}
+
+void GraphWidgetPluginInstance::beginData(InputReaderThread* inputReaderThread, int numberOfBytes) {
+  while(numberOfBytes > 0) {
+    qint64 read = qMin(numberOfBytes, m_bufferSize - m_bufferWritePos);
+    read = inputReaderThread->read(&m_buffer[m_bufferWritePos], read);
+    incrementBufferWritePos(read);
+    numberOfBytes -= read;
   }
 }
 
@@ -72,14 +87,20 @@ void GraphWidgetPluginInstance::addData(QStringList args) {
 }
 
 void GraphWidgetPluginInstance::writeByteToBuffer(unsigned char b) {
+  //qDebug() << "m_buffer[" << m_bufferWritePos << "] = " << QString::number(b, 16);
   m_buffer[m_bufferWritePos] = b;
-  m_bufferAvailable++;
+  incrementBufferWritePos(1);
+}
+
+void GraphWidgetPluginInstance::incrementBufferWritePos(int i) {
+  m_bufferAvailable += i;
   if(m_bufferAvailable >= m_bufferSize) {
     m_bufferAvailable = m_bufferSize;
   }
-  m_bufferWritePos++;
-  if(m_bufferWritePos >= m_bufferSize) {
-    m_bufferWritePos = 0;
+
+  m_bufferWritePos += i;
+  while(m_bufferWritePos >= m_bufferSize) {
+    m_bufferWritePos -= m_bufferSize;
   }
 }
 

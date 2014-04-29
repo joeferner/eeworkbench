@@ -81,7 +81,7 @@ void MainWindow::stopInputReaderThread() {
   m_inputReaderThread = NULL;
 }
 
-void MainWindow::runCommand(const QString& scope, const QString& functionName, QStringList args) {
+void MainWindow::runCommand(InputReaderThread* inputReaderThread, const QString& scope, const QString& functionName, QStringList args) {
   if(scope == "window") {
     runCommand(functionName, args);
   } else {
@@ -90,7 +90,7 @@ void MainWindow::runCommand(const QString& scope, const QString& functionName, Q
       qWarning() << "Could not find scope" << scope;
       return;
     }
-    widgetPluginInstance->runCommand(functionName, args);
+    widgetPluginInstance->runCommand(inputReaderThread, functionName, args);
   }
 }
 
