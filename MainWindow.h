@@ -7,22 +7,13 @@
 #include <QLabel>
 #include <QMap>
 #include "plugins/PluginManager.h"
+#include "plugins/WidgetPluginInstance.h"
 #include "InputReaderThread.h"
 #include "CommandRunner.h"
 
 namespace Ui {
 class MainWindow;
 }
-
-class WidgetPluginInstance {
-public:
-  QWidget* widget;
-  const WidgetPlugin* widgetPlugin;
-  int row;
-  int column;
-  int rowSpan;
-  int columnSpan;
-};
 
 class MainWindow :
     public QMainWindow,
@@ -40,13 +31,13 @@ protected:
   virtual void closeEvent(QCloseEvent *event);
 
 signals:
-  void addWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance);
+  void addWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan);
 
 private slots:
   void on_actionConnect_triggered();
   void onInputPluginConnected();
   void onInputPluginDisconnected();
-  void onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance);
+  void onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan);
 
   void on_actionExit_triggered();
 
@@ -60,6 +51,7 @@ private:
   QMap<QString, WidgetPluginInstance*> m_widgets;
 
   void stopInputReaderThread();
+  void clearWidgets();
   void runCommand(const QString& functionName, QStringList args);
   void runSetCommand(const QString& name, const QString& value);
   void runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan);

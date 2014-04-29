@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
   m_descriptionLabel = new QLabel(this);
   statusBar()->addWidget(m_descriptionLabel);
 
-  connect(this, SIGNAL(addWidgetPluginInstance(WidgetPluginInstance*)), this, SLOT(onAddWidgetPluginInstance(WidgetPluginInstance*)));
+  connect(this, SIGNAL(addWidgetPluginInstance(WidgetPluginInstance*,int,int,int,int)), this, SLOT(onAddWidgetPluginInstance(WidgetPluginInstance*,int,int,int,int)));
 }
 
 MainWindow::~MainWindow()
@@ -35,6 +35,7 @@ void MainWindow::on_actionConnect_triggered() {
     activeInputPlugin->disconnect();
   } else {
     stopInputReaderThread();
+    clearWidgets();
     QObject::connect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
     activeInputPlugin->connect();
   }
@@ -65,6 +66,13 @@ void MainWindow::on_actionExit_triggered() {
   close();
 }
 
+void MainWindow::clearWidgets() {
+  foreach(WidgetPluginInstance* widgetPluginInstance, m_widgets.values()) {
+    delete widgetPluginInstance;
+  }
+  m_widgets.clear();
+}
+
 void MainWindow::stopInputReaderThread() {
   if(m_inputReaderThread == NULL) {
     return;
@@ -82,7 +90,7 @@ void MainWindow::runCommand(const QString& scope, const QString& functionName, Q
       qWarning() << "Could not find scope" << scope;
       return;
     }
-    widgetPluginInstance->widgetPlugin->runCommand(widgetPluginInstance->widget, functionName, args);
+    widgetPluginInstance->runCommand(functionName, args);
   }
 }
 
@@ -120,25 +128,13 @@ void MainWindow::runAddCommand(const QString& type, const QString& name, int row
     qWarning() << "Invalid type" << type << "for add.";
     return;
   }
-  WidgetPluginInstance* widgetPluginInstance = new WidgetPluginInstance();
-  widgetPluginInstance->widgetPlugin = widgetPlugin;
-  widgetPluginInstance->row = row;
-  widgetPluginInstance->column = column;
-  widgetPluginInstance->rowSpan = rowSpan;
-  widgetPluginInstance->columnSpan = columnSpan;
+  WidgetPluginInstance* widgetPluginInstance = widgetPlugin->createInstance();
   m_widgets.insert(name, widgetPluginInstance);
-  emit addWidgetPluginInstance(widgetPluginInstance);
+  emit addWidgetPluginInstance(widgetPluginInstance, row, column, rowSpan, columnSpan);
 }
 
-void MainWindow::onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance) {
-  QWidget* widget = widgetPluginInstance->widgetPlugin->create();
-  widgetPluginInstance->widget = widget;
-
-  m_layout->addWidget(
-        widgetPluginInstance->widget,
-        widgetPluginInstance->row,
-        widgetPluginInstance->column,
-        widgetPluginInstance->rowSpan,
-        widgetPluginInstance->columnSpan);
+void MainWindow::onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan) {
+  QWidget* widget = widgetPluginInstance->getWidget();
+  m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
 }
 

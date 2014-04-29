@@ -10,9 +10,8 @@ class GraphPlugin : public WidgetPlugin
 public:
   GraphPlugin();
 
-  virtual QWidget* create() const;
   virtual QString getName() const { return "graph"; }
-  virtual void runCommand(QWidget* scope, const QString& functionName, QStringList args) const;
+  virtual WidgetPluginInstance* createInstance() const;
 };
 
 #endif // GRAPHPLUGIN_H

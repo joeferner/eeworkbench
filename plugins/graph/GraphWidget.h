@@ -3,11 +3,13 @@
 
 #include <QWidget>
 
+class GraphWidgetPluginInstance;
+
 class GraphWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GraphWidget(QWidget *parent = 0);
+  explicit GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance);
 
 signals:
 
@@ -15,6 +17,11 @@ public slots:
 
 protected:
   virtual void paintEvent(QPaintEvent *);
+
+private:
+  GraphWidgetPluginInstance* m_graphWidgetPluginInstance;
 };
+
+#include "GraphWidgetPluginInstance.h"
 
 #endif // GRAPHWIDGET_H
