@@ -11,22 +11,27 @@ UnitsUtil::UnitsUtil()
 }
 
 QString UnitsUtil::toString(double f, const QString& unit) {
+  QString str;
   if(fabs(f) < PICO) {
-    return QString("0") + unit;
+    str = "0";
+  } else if(fabs(f) < NANO) {
+    str.sprintf("%.2f", f / PICO);
+  } else if(fabs(f) < MICRO) {
+    str.sprintf("%.2f", f / NANO);
+  } else if(fabs(f) < MILLI) {
+    str.sprintf("%.2f", f / MICRO);
+  } else if(fabs(f) < 1.0f) {
+    str.sprintf("%.2f", f / MILLI);
+  } else {
+    str.sprintf("%.2f", f);
   }
-  if(fabs(f) < NANO) {
-    return QString::number(f / PICO, 'g', 3) + "p" + unit;
+  while(str.endsWith("0")) {
+    str = str.remove(str.length() - 1, 1);
   }
-  if(fabs(f) < MICRO) {
-    return QString::number(f / NANO, 'g', 3) + "n" + unit;
+  if(str.endsWith(".")) {
+    str = str.remove(str.length() - 1, 1);
   }
-  if(fabs(f) < MILLI) {
-    return QString::number(f / MICRO, 'g', 3) + "u" + unit;
-  }
-  if(fabs(f) < 1.0f) {
-    return QString::number(f / MILLI, 'g', 3) + "m" + unit;
-  }
-  return QString::number(f, 'g', 3) + unit;
+  return str + unit;
 }
 
 double UnitsUtil::roundToOrderOfMagnitude(double f) {

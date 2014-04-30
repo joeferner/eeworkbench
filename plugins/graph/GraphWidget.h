@@ -31,8 +31,12 @@ private:
   int getScrollPosition() const;
   double xPositionToSample(double x) const;
   double xPositionToTime(double x) const;
+  double widthToSamples(double width) const;
+  double widthToTime(double width) const;
   double timeToX(double time) const;
   double sampleToX(double sample) const;
+  double timeToWidth(double time) const;
+  double sampleToWidth(double sample) const;
 };
 
 #include "GraphWidgetPluginInstance.h"
