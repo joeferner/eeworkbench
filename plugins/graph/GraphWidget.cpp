@@ -9,6 +9,7 @@
 GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
   QAbstractScrollArea(NULL),
   m_pixelsPerSample(25.0f),
+  m_marginLeft(0),
   m_graphWidgetPluginInstance(graphWidgetPluginInstance)
 {
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -42,12 +43,14 @@ void GraphWidget::paintSignals(QPainter& painter) {
     return;
   }
 
-  int signalHeight = (viewport()->height() - m_marginTop) / signalCount;
+  int signalMargin = 10;
+  int signalHeight = ((viewport()->height() - m_marginTop) / signalCount) - (2 * signalMargin);
 
-  int y, s;
-  for(s = 0, y = m_marginTop; s < signalCount; s++, y+=signalHeight) {
+  // print signal labels
+  int signalTop, s;
+  for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
     const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
-    QRect rect(0, y, m_marginLeft, signalHeight);
+    QRect rect(0, signalTop, m_marginLeft, signalHeight);
     painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));    
   }
 
@@ -61,8 +64,12 @@ void GraphWidget::paintSignals(QPainter& painter) {
     unsigned char bufferTemp = buffer[bufferIndex];
     int bufferTempBit = 0;
     int x = timeToX(bufferCount * timePerSample);
-    for(s = 0, y = m_marginTop; s < signalCount; s++, y+=signalHeight) {
+    for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
       const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
+      QBrush brush(signal->color);
+      QPen pen(brush, 1, Qt::SolidLine);
+      painter.setPen(pen);
+      painter.setBrush(brush);
       uint temp = 0;
 
       for(int signalBit=0; signalBit < signal->bits; signalBit++) {
@@ -80,11 +87,20 @@ void GraphWidget::paintSignals(QPainter& painter) {
         }
       }
 
+      double f = (double)temp / (double)(signal->maxValue);
+      int y = signalTop + (signalHeight - (signalHeight * f));
+
       QPoint pt(x, y);
-      QString str = QString::number(temp);
-      QRect rect(x, y, 100, 100);
-      painter.drawText(rect, str, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
-      painter.drawLine(lastPoints[s], pt);
+      if(bufferCount > 0) {
+        if(signal->bits == 1) {
+          int midX = (pt.x() + lastPoints[s].x()) / 2;
+          painter.drawLine(lastPoints[s].x(), lastPoints[s].y(), midX, lastPoints[s].y());
+          painter.drawLine(midX, lastPoints[s].y(), midX, pt.y());
+          painter.drawLine(midX, pt.y(), pt.x(), pt.y());
+        } else {
+          painter.drawLine(lastPoints[s], pt);
+        }
+      }
 
       lastPoints[s].setX(x);
       lastPoints[s].setY(y);
@@ -107,7 +123,7 @@ void GraphWidget::paintSignals(QPainter& painter) {
 void GraphWidget::updateHorizontalScrollBar() {
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
 
-  int scrollableWidth = m_pixelsPerSample * (double)bufferAvailable;
+  int scrollableWidth = (m_pixelsPerSample * (double)bufferAvailable) - viewport()->width() + m_marginLeft;
   int currentMax = horizontalScrollBar()->maximum();
   if(scrollableWidth != currentMax) {
     horizontalScrollBar()->setMaximum(scrollableWidth);

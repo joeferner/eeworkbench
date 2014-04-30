@@ -1,5 +1,6 @@
 #include "GraphWidgetPluginInstance.h"
 #include "GraphWidget.h"
+#include <math.h>
 #include <QDebug>
 
 GraphWidgetPluginInstance::GraphWidgetPluginInstance() :
@@ -123,6 +124,7 @@ void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double 
   GraphSignal* signal = new GraphSignal();
   signal->name = name;
   signal->bits = bits;
+  signal->maxValue = bits == 1 ? 1 : pow(2, bits);
   signal->scaleMin = scaleMin;
   signal->scaleMax = scaleMax;
   signal->color = m_colors[m_signals.length() % m_colorsCount];

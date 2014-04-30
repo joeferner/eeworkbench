@@ -9,6 +9,7 @@
 struct GraphSignal {
   QString name;
   int bits;
+  int maxValue;
   int scaleMin;
   int scaleMax;
   QColor color;
