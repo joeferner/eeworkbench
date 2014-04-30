@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     utils/RingBuffer.cpp \
     CommandRunner.cpp \
     plugins/WidgetPluginInstance.cpp \
-    plugins/graph/GraphWidgetPluginInstance.cpp
+    plugins/graph/GraphWidgetPluginInstance.cpp \
+    utils/UnitsUtil.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -47,7 +48,8 @@ HEADERS  += MainWindow.h \
     utils/RingBuffer.h \
     CommandRunner.h \
     plugins/WidgetPluginInstance.h \
-    plugins/graph/GraphWidgetPluginInstance.h
+    plugins/graph/GraphWidgetPluginInstance.h \
+    utils/UnitsUtil.h
 
 FORMS    += MainWindow.ui \
     plugins/fileInput/FileInputConnectDialog.ui

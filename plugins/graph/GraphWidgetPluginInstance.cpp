@@ -3,7 +3,8 @@
 #include <QDebug>
 
 GraphWidgetPluginInstance::GraphWidgetPluginInstance() :
-  m_widget(NULL)
+  m_widget(NULL),
+  m_timePerSample(0.001)
 {
   m_bufferSize = 10 * 1024 * 1024;
   m_buffer = new unsigned char[m_bufferSize];
@@ -32,6 +33,12 @@ void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread,
     } else {
       qWarning() << "Graph: addSignal: Invalid number of arguments. Expected 4, found " << args.length();
     }
+  } else if(functionName == "set") {
+    if(args.length() == 2) {
+      set(args.at(0), args.at(1));
+    } else {
+      qWarning() << "Graph: set: Invalid number of arguments. Expected 2, found " << args.length();
+    }
   } else if(functionName == "data") {
     if(args.length() == m_signals.length()) {
       addData(args);
@@ -46,6 +53,14 @@ void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread,
     }
   } else {
     qWarning() << "Graph: Unknown Command" << functionName << args;
+  }
+}
+
+void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
+  if(name == "timePerSample") {
+    m_timePerSample = value.toFloat();
+  } else {
+    qWarning() << "Graph: Unknown set command" << name;
   }
 }
 

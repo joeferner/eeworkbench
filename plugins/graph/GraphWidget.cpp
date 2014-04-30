@@ -1,30 +1,40 @@
 #include "GraphWidget.h"
 #include <QPainter>
 #include <QRect>
+#include <QScrollBar>
+#include <QDebug>
+#include "../../utils/UnitsUtil.h"
 
 GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
-  QWidget(NULL),
+  QAbstractScrollArea(NULL),
+  m_pixelsPerSample(5.0f),
   m_graphWidgetPluginInstance(graphWidgetPluginInstance)
 {
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
 void GraphWidget::paintEvent(QPaintEvent*)
 {
   QPainter painter;
-  painter.begin(this);
+  painter.begin(viewport());
 
   QRect totalRect(0, 0, width(), height());
   painter.fillRect(totalRect, Qt::black);
 
-  QBrush brush(QColor(255, 0, 0));
-  QPen pen(brush, 1, Qt::SolidLine);
-  painter.setPen(pen);
-  painter.setBrush(brush);
+  m_marginLeft =100;
 
+  updateHorizontalScrollBar();
+  paintScale(painter);
+  //paintSignals(painter);
+
+  painter.end();
+}
+
+void GraphWidget::paintSignals(QPainter& painter) {
   const unsigned char* buffer = m_graphWidgetPluginInstance->getBuffer();
-  int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
   int bufferSize = m_graphWidgetPluginInstance->getBufferSize();
   int signalCount = m_graphWidgetPluginInstance->getSignalCount();
+  int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
 
   if(signalCount == 0) {
     return;
@@ -77,6 +87,60 @@ void GraphWidget::paintEvent(QPaintEvent*)
 
     y++;
   }
-
-  painter.end();
 }
+
+void GraphWidget::updateHorizontalScrollBar() {
+  int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
+
+  int scrollableWidth = m_pixelsPerSample * (float)bufferAvailable;
+  int currentMax = horizontalScrollBar()->maximum();
+  if(scrollableWidth != currentMax) {
+    horizontalScrollBar()->setMaximum(scrollableWidth);
+  }
+}
+
+float GraphWidget::xPositionToSample(float x) const {
+  return (horizontalScrollBar()->value() + (x - m_marginLeft)) / m_pixelsPerSample;
+}
+
+float GraphWidget::xPositionToTime(float x) const {
+  float timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+  return xPositionToSample(x) * timePerSample;
+}
+
+float GraphWidget::sampleToX(float sample) const {
+  return (sample * m_pixelsPerSample) - horizontalScrollBar()->value() + m_marginLeft;
+}
+
+float GraphWidget::timeToX(float time) const {
+  float timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+  return sampleToX(time / timePerSample);
+}
+
+void GraphWidget::paintScale(QPainter& painter) {
+  QBrush brush(QColor(255, 255, 255));
+  QPen pen(brush, 1, Qt::SolidLine);
+  painter.setPen(pen);
+  painter.setBrush(brush);
+
+  QFontMetrics fm(painter.font());
+
+  QRect rect;
+  QString str;
+  int margin = 20;
+  int y = 0;
+  int textHeight = 20;
+  int maximumTextWidth = fm.width("1.000ms");
+  float timePerTick = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(maximumTextWidth + (2 * margin)) - xPositionToTime(0));
+  float pixelsPerTick = timeToX(timePerTick) + horizontalScrollBar()->value() - m_marginLeft;
+  float time = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(m_marginLeft));
+
+  qDebug() << "time" << time;
+  for(int x = timeToX(time - timePerTick); x < viewport()->width(); x += pixelsPerTick) {
+    rect.setRect(x - (maximumTextWidth / 2), y, maximumTextWidth, textHeight);
+    str = UnitsUtil::toString(xPositionToTime(x), "s");
+    painter.drawText(rect, Qt::AlignHCenter, str);
+  }
+}
+
+
