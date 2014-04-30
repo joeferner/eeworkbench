@@ -22,7 +22,7 @@ public:
 
   virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
   virtual QWidget* getWidget();
-  void addSignal(const QString& name, int bits, float scaleMin, float scaleMax);
+  void addSignal(const QString& name, int bits, double scaleMin, double scaleMax);
   void addData(QStringList args);
   void beginData(InputReaderThread* inputReaderThread, int numberOfBytes);
 
@@ -32,12 +32,12 @@ public:
   int getBufferSize() const { return m_bufferSize; }
   int getBufferWritePos() const { return m_bufferWritePos; }
   int getBufferAvailable() const { return m_bufferAvailable; }
-  float getTimePerSample() const { return m_timePerSample; }
+  double getTimePerSample() const { return m_timePerSample; }
 
 private:
   GraphWidget* m_widget;
   QList<GraphSignal*> m_signals;
-  float m_timePerSample;
+  double m_timePerSample;
   unsigned char* m_buffer;
   int m_bufferSize;
   int m_bufferWritePos;

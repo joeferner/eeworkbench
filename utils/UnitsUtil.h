@@ -9,13 +9,13 @@ private:
   UnitsUtil();
 
 public:
-  static QString toString(float f, const QString& unit);
-  static float roundToOrderOfMagnitude(float f);
+  static QString toString(double f, const QString& unit);
+  static double roundToOrderOfMagnitude(double f);
 
-  static float MILLI;
-  static float MICRO;
-  static float NANO;
-  static float PICO;
+  static double MILLI;
+  static double MICRO;
+  static double NANO;
+  static double PICO;
 };
 
 #endif // UNITSUTIL_H

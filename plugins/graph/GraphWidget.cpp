@@ -3,6 +3,7 @@
 #include <QRect>
 #include <QScrollBar>
 #include <QDebug>
+#include <math.h>
 #include "../../utils/UnitsUtil.h"
 
 GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
@@ -21,11 +22,11 @@ void GraphWidget::paintEvent(QPaintEvent*)
   QRect totalRect(0, 0, width(), height());
   painter.fillRect(totalRect, Qt::black);
 
-  m_marginLeft =100;
+  m_marginLeft = 75;
 
   updateHorizontalScrollBar();
   paintScale(painter);
-  //paintSignals(painter);
+  paintSignals(painter);
 
   painter.end();
 }
@@ -40,13 +41,16 @@ void GraphWidget::paintSignals(QPainter& painter) {
     return;
   }
 
-  for(int s = 0; s < signalCount; s++) {
-    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
-    QRect rect(s * 50, 0, s * 50 + 50, 12);
-    painter.drawText(rect, signal->name, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
-  }
+  int signalHeight = (viewport()->height() - m_marginTop) / signalCount;
 
   int y = 0;
+  for(int s = 0; s < signalCount; s++) {
+    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
+    QRect rect(0, m_marginTop + y, m_marginLeft, signalHeight);
+    painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));
+    y += signalHeight;
+  }
+return;
   int bufferIndex = 0;
   for(int bufferCount = 0; bufferCount < bufferAvailable;) {
     unsigned char bufferTemp = buffer[bufferIndex];
@@ -92,28 +96,28 @@ void GraphWidget::paintSignals(QPainter& painter) {
 void GraphWidget::updateHorizontalScrollBar() {
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
 
-  int scrollableWidth = m_pixelsPerSample * (float)bufferAvailable;
+  int scrollableWidth = m_pixelsPerSample * (double)bufferAvailable;
   int currentMax = horizontalScrollBar()->maximum();
   if(scrollableWidth != currentMax) {
     horizontalScrollBar()->setMaximum(scrollableWidth);
   }
 }
 
-float GraphWidget::xPositionToSample(float x) const {
+double GraphWidget::xPositionToSample(double x) const {
   return (horizontalScrollBar()->value() + (x - m_marginLeft)) / m_pixelsPerSample;
 }
 
-float GraphWidget::xPositionToTime(float x) const {
-  float timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+double GraphWidget::xPositionToTime(double x) const {
+  double timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
   return xPositionToSample(x) * timePerSample;
 }
 
-float GraphWidget::sampleToX(float sample) const {
+double GraphWidget::sampleToX(double sample) const {
   return (sample * m_pixelsPerSample) - horizontalScrollBar()->value() + m_marginLeft;
 }
 
-float GraphWidget::timeToX(float time) const {
-  float timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+double GraphWidget::timeToX(double time) const {
+  double timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
   return sampleToX(time / timePerSample);
 }
 
@@ -129,18 +133,28 @@ void GraphWidget::paintScale(QPainter& painter) {
   QString str;
   int margin = 20;
   int y = 0;
-  int textHeight = 20;
-  int maximumTextWidth = fm.width("1.000ms");
-  float timePerTick = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(maximumTextWidth + (2 * margin)) - xPositionToTime(0));
-  float pixelsPerTick = timeToX(timePerTick) + horizontalScrollBar()->value() - m_marginLeft;
-  float time = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(m_marginLeft));
+  QRect fontBoundingBox = fm.boundingRect("1.000ms");
+  int maximumTextWidth = fontBoundingBox.width();
+  m_marginTop = fontBoundingBox.height() + 5;
+  double timePerTick = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(maximumTextWidth + (2 * margin)) - xPositionToTime(0));
+  double pixelsPerTick = timeToX(timePerTick) + horizontalScrollBar()->value() - m_marginLeft;
+  double ticksOnScreen = ceil(viewport()->width() / pixelsPerTick);
+  double time = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(viewport()->width())) - (timePerTick * ticksOnScreen);
 
-  qDebug() << "time" << time;
-  for(int x = timeToX(time - timePerTick); x < viewport()->width(); x += pixelsPerTick) {
-    rect.setRect(x - (maximumTextWidth / 2), y, maximumTextWidth, textHeight);
+  QRect scaleRect(m_marginLeft, 0, viewport()->width() - m_marginLeft, m_marginTop);
+  painter.setClipRect(scaleRect);
+  painter.setClipping(true);
+
+  for(double x = timeToX(time - timePerTick); x < viewport()->width() + pixelsPerTick; x += pixelsPerTick) {
+    if((x + (maximumTextWidth / 2)) < m_marginLeft) {
+      continue;
+    }
+    rect.setRect(x - (maximumTextWidth / 2), y, maximumTextWidth, m_marginTop);
     str = UnitsUtil::toString(xPositionToTime(x), "s");
     painter.drawText(rect, Qt::AlignHCenter, str);
   }
+
+  painter.setClipping(false);
 }
 
 

@@ -19,8 +19,9 @@ protected:
   virtual void paintEvent(QPaintEvent *);
 
 private:
-  float m_pixelsPerSample;
+  double m_pixelsPerSample;
   int m_marginLeft;
+  int m_marginTop;
   GraphWidgetPluginInstance* m_graphWidgetPluginInstance;
 
   void updateHorizontalScrollBar();
@@ -28,10 +29,10 @@ private:
   void paintSignals(QPainter& painter);
 
   int getScrollPosition() const;
-  float xPositionToSample(float x) const;
-  float xPositionToTime(float x) const;
-  float timeToX(float time) const;
-  float sampleToX(float sample) const;
+  double xPositionToSample(double x) const;
+  double xPositionToTime(double x) const;
+  double timeToX(double time) const;
+  double sampleToX(double sample) const;
 };
 
 #include "GraphWidgetPluginInstance.h"

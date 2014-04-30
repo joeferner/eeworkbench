@@ -29,7 +29,7 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
 void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args) {
   if(functionName == "addSignal") {
     if(args.length() == 4) {
-      addSignal(args.at(0), args.at(1).toInt(), args.at(2).toFloat(), args.at(3).toFloat());
+      addSignal(args.at(0), args.at(1).toInt(), args.at(2).toDouble(), args.at(3).toDouble());
     } else {
       qWarning() << "Graph: addSignal: Invalid number of arguments. Expected 4, found " << args.length();
     }
@@ -58,7 +58,7 @@ void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread,
 
 void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
   if(name == "timePerSample") {
-    m_timePerSample = value.toFloat();
+    m_timePerSample = value.toDouble();
   } else {
     qWarning() << "Graph: Unknown set command" << name;
   }
@@ -119,7 +119,7 @@ void GraphWidgetPluginInstance::incrementBufferWritePos(int i) {
   }
 }
 
-void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, float scaleMin, float scaleMax) {
+void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double scaleMin, double scaleMax) {
   GraphSignal* signal = new GraphSignal();
   signal->name = name;
   signal->bits = bits;
