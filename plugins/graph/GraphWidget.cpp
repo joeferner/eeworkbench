@@ -78,6 +78,7 @@ void GraphWidget::paintSignals(QPainter& painter) {
   int signalCount = m_graphWidgetPluginInstance->getSignalCount();
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
   double timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+  int bytesPerSample = m_graphWidgetPluginInstance->getBytesPerSample();
 
   if(signalCount == 0) {
     return;
@@ -108,7 +109,7 @@ void GraphWidget::paintSignals(QPainter& painter) {
   for(int bufferCount = 0; bufferCount < bufferAvailable;) {
     unsigned char bufferTemp = buffer[bufferIndex];
     int bufferTempBit = 0;
-    int x = timeToX(bufferCount * timePerSample);
+    int x = timeToX((bufferCount / bytesPerSample) * timePerSample);
     for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
       const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
       QBrush brush(signal->color);

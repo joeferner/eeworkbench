@@ -15,13 +15,13 @@ QString UnitsUtil::toString(double f, const QString& unit) {
   if(fabs(f) < PICO) {
     str = "0";
   } else if(fabs(f) < NANO) {
-    str.sprintf("%.2f", f / PICO);
+    str.sprintf("%.2fp", f / PICO);
   } else if(fabs(f) < MICRO) {
-    str.sprintf("%.2f", f / NANO);
+    str.sprintf("%.2fn", f / NANO);
   } else if(fabs(f) < MILLI) {
-    str.sprintf("%.2f", f / MICRO);
+    str.sprintf("%.2fu", f / MICRO);
   } else if(fabs(f) < 1.0f) {
-    str.sprintf("%.2f", f / MILLI);
+    str.sprintf("%.2fm", f / MILLI);
   } else {
     str.sprintf("%.2f", f);
   }

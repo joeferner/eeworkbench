@@ -34,6 +34,7 @@ public:
   int getBufferWritePos() const { return m_bufferWritePos; }
   int getBufferAvailable() const { return m_bufferAvailable; }
   double getTimePerSample() const { return m_timePerSample; }
+  int getBytesPerSample() const;
 
 private:
   GraphWidget* m_widget;

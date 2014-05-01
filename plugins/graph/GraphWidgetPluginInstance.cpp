@@ -137,3 +137,11 @@ QWidget* GraphWidgetPluginInstance::getWidget() {
   }
   return m_widget;
 }
+
+int GraphWidgetPluginInstance::getBytesPerSample() const {
+  int bits = 0;
+  foreach(GraphSignal* signal, m_signals) {
+    bits += signal->bits;
+  }
+  return ceil((float)bits / 8.0);
+}
