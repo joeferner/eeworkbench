@@ -2,6 +2,8 @@
 #define GRAPHWIDGET_H
 
 #include <QAbstractScrollArea>
+#include <QRect>
+#include <QPoint>
 
 class GraphWidgetPluginInstance;
 
@@ -16,17 +18,27 @@ signals:
 public slots:
 
 protected:
-  virtual void paintEvent(QPaintEvent *);
+  virtual void paintEvent(QPaintEvent* painter);
+  virtual void mouseMoveEvent(QMouseEvent* event);
 
 private:
   double m_pixelsPerSample;
   int m_marginLeft;
+  int m_marginRight;
   int m_marginTop;
+  int m_lastMouseSignal;
+  int m_lastMouseSample;
+  QPoint m_mousePosition;
+  QRect m_measurementHeadingTextBoundingRect;
+  QRect m_measurementValueTextBoundingRect;
+  QRect m_signalRects[100];
   GraphWidgetPluginInstance* m_graphWidgetPluginInstance;
 
   void updateHorizontalScrollBar();
   void paintScale(QPainter& painter);
   void paintSignals(QPainter& painter);
+  void paintMeasurements(QPainter& painter);
+  void paintMeasurementField(QPainter& painter, QRect& rect, const QString& title, const QString& value);
 
   int getScrollPosition() const;
   double xPositionToSample(double x) const;

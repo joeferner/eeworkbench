@@ -3,6 +3,7 @@
 #include <QRect>
 #include <QScrollBar>
 #include <QDebug>
+#include <QMouseEvent>
 #include <math.h>
 #include "../../utils/UnitsUtil.h"
 
@@ -10,9 +11,47 @@ GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
   QAbstractScrollArea(NULL),
   m_pixelsPerSample(25.0f),
   m_marginLeft(0),
+  m_marginRight(100),
+  m_lastMouseSignal(-1),
+  m_lastMouseSample(-1),
   m_graphWidgetPluginInstance(graphWidgetPluginInstance)
 {
+  m_signalRects[0].setRect(-1, -1, 0, 0);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  setMouseTracking(true);
+  setUpdatesEnabled(true);
+}
+
+void GraphWidget::mouseMoveEvent(QMouseEvent* event) {
+  bool requireRepaint = false;
+  QAbstractScrollArea::mouseMoveEvent(event);
+
+  m_mousePosition = event->pos();
+
+  int signal = -1;
+  for(int s = 0; m_signalRects[s].left() != -1; s++) {
+    if(m_signalRects[s].contains(m_mousePosition)) {
+      signal = s;
+      break;
+    }
+  }
+  if(m_lastMouseSignal != signal) {
+    m_lastMouseSignal = signal;
+    requireRepaint = true;
+  }
+
+  int sample = -1;
+  if(m_mousePosition.x() > m_marginLeft && m_mousePosition.y() > m_marginTop) {
+    sample = xPositionToSample(m_mousePosition.x());
+  }
+  if(m_lastMouseSample != sample) {
+    m_lastMouseSample = sample;
+    requireRepaint = true;
+  }
+
+  if(requireRepaint) {
+    viewport()->update();
+  }
 }
 
 void GraphWidget::paintEvent(QPaintEvent*)
@@ -28,6 +67,7 @@ void GraphWidget::paintEvent(QPaintEvent*)
   updateHorizontalScrollBar();
   paintScale(painter);
   paintSignals(painter);
+  paintMeasurements(painter);
 
   painter.end();
 }
@@ -45,17 +85,22 @@ void GraphWidget::paintSignals(QPainter& painter) {
 
   int signalMargin = 10;
   int signalHeight = ((viewport()->height() - m_marginTop) / signalCount) - (2 * signalMargin);
+  int signalTop, s;
+
+  for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
+    m_signalRects[s].setRect(m_marginLeft, signalTop, viewport()->width() - m_marginLeft - m_marginRight, signalHeight);
+  }
+  m_signalRects[s].setRect(-1, -1, 0, 0);
 
   // print signal labels
-  int signalTop, s;
   for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
     const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
     QRect rect(0, signalTop, m_marginLeft, signalHeight);
-    painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));    
+    painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));
   }
 
-  QRect scaleRect(m_marginLeft, m_marginTop, viewport()->width() - m_marginLeft, viewport()->height() - m_marginTop);
-  painter.setClipRect(scaleRect);
+  QRect clippingRect(m_marginLeft, m_marginTop, viewport()->width() - m_marginLeft - m_marginRight, viewport()->height() - m_marginTop);
+  painter.setClipRect(clippingRect);
   painter.setClipping(true);
 
   QPoint lastPoints[100];
@@ -93,7 +138,7 @@ void GraphWidget::paintSignals(QPainter& painter) {
       QPoint pt(x, y);
       if(bufferCount > 0) {
         if(signal->bits == 1) {
-          int midX = (pt.x() + lastPoints[s].x()) / 2;
+          int midX = pt.x() - 1;
           painter.drawLine(lastPoints[s].x(), lastPoints[s].y(), midX, lastPoints[s].y());
           painter.drawLine(midX, lastPoints[s].y(), midX, pt.y());
           painter.drawLine(midX, pt.y(), pt.x(), pt.y());
@@ -120,10 +165,64 @@ void GraphWidget::paintSignals(QPainter& painter) {
   painter.setClipping(false);
 }
 
+void GraphWidget::paintMeasurements(QPainter& painter) {
+  QBrush brush(QColor(255, 233, 127));
+  QPen pen(brush, 1, Qt::SolidLine);
+  painter.setPen(pen);
+  painter.setBrush(brush);
+
+  QRect clippingRect(viewport()->width() - m_marginRight, 0, m_marginRight, viewport()->height());
+  painter.setClipRect(clippingRect);
+  painter.setClipping(true);
+
+  QFontMetrics fm(painter.font());
+  m_measurementHeadingTextBoundingRect = fm.boundingRect("Channel:");
+  m_measurementValueTextBoundingRect = fm.boundingRect("0.00000MHz");
+  m_measurementValueTextBoundingRect.setHeight(m_measurementValueTextBoundingRect.height() + 10);
+
+  QRect rect(clippingRect.left(), clippingRect.top(), clippingRect.width(), clippingRect.height());
+
+  QString channel = "-";
+  QString sample = "-";
+  QString time = "-";
+  QString period = "-";
+  QString frequency = "-";
+  QString widthH = "-";
+  QString widthL = "-";
+  QString dutyCycle = "-";
+
+  if(m_lastMouseSignal != -1) {
+    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(m_lastMouseSignal);
+    channel = signal->name;
+  }
+
+  if(m_lastMouseSample != -1) {
+    sample = QString::number(m_lastMouseSample);
+  }
+
+  paintMeasurementField(painter, rect, "Channel:", channel);
+  paintMeasurementField(painter, rect, "Sample:", sample);
+  paintMeasurementField(painter, rect, "Time:", time);
+  paintMeasurementField(painter, rect, "Period:", period);
+  paintMeasurementField(painter, rect, "Frequency:", frequency);
+  paintMeasurementField(painter, rect, "Width (H):", widthH);
+  paintMeasurementField(painter, rect, "Width (L):", widthL);
+  paintMeasurementField(painter, rect, "Duty Cycle:", dutyCycle);
+
+  painter.setClipping(false);
+}
+
+void GraphWidget::paintMeasurementField(QPainter& painter, QRect& rect, const QString& title, const QString& value) {
+  painter.drawText(rect, title, QTextOption(Qt::AlignLeft | Qt::AlignTop));
+  rect.adjust(10, m_measurementHeadingTextBoundingRect.height(), 0, 0);
+  painter.drawText(rect, value, QTextOption(Qt::AlignLeft | Qt::AlignTop));
+  rect.adjust(-10, m_measurementValueTextBoundingRect.height(), 0, 0);
+}
+
 void GraphWidget::updateHorizontalScrollBar() {
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
 
-  int scrollableWidth = (m_pixelsPerSample * (double)bufferAvailable) - viewport()->width() + m_marginLeft;
+  int scrollableWidth = (m_pixelsPerSample * (double)bufferAvailable) - (viewport()->width() - m_marginRight) + m_marginLeft;
   int currentMax = horizontalScrollBar()->maximum();
   if(scrollableWidth != currentMax) {
     horizontalScrollBar()->setMaximum(scrollableWidth);
@@ -194,7 +293,7 @@ void GraphWidget::paintScale(QPainter& painter) {
   double ticksOnScreen = ceil(viewport()->width() / pixelsPerTick);
   double time = UnitsUtil::roundToOrderOfMagnitude(xPositionToTime(viewport()->width())) - (timePerTick * ticksOnScreen);
 
-  QRect scaleRect(m_marginLeft, 0, viewport()->width() - m_marginLeft, m_marginTop);
+  QRect scaleRect(m_marginLeft, 0, viewport()->width() - m_marginLeft - m_marginRight, m_marginTop);
   painter.setClipRect(scaleRect);
   painter.setClipping(true);
 
