@@ -28,6 +28,10 @@ private:
   int m_marginTop;
   int m_lastMouseSignal;
   double m_lastMouseSample;
+  double m_lastMouseSampleCrossing0;
+  double m_lastMouseSampleCrossing1;
+  double m_lastMouseSampleCrossing2;
+  bool m_lastMouseSampleRising;
   QPoint m_mousePosition;
   QRect m_measurementHeadingTextBoundingRect;
   QRect m_measurementValueTextBoundingRect;
