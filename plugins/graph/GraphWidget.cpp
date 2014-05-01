@@ -186,6 +186,7 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   QString channel = "-";
   QString sampleString = "-";
   QString time = "-";
+  QString valueString = "-";
   QString period = "-";
   QString frequency = "-";
   QString widthH = "-";
@@ -203,11 +204,18 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
 
     sampleString = QString::number(sample);
     time = UnitsUtil::toString((float)sample * timePerSample, "s");
+
+    if(m_lastMouseSignal != -1) {
+      double value = m_graphWidgetPluginInstance->getValue(sample, m_lastMouseSignal);
+
+      valueString = UnitsUtil::toString(value, "V");
+    }
   }
 
   paintMeasurementField(painter, rect, "Channel:", channel);
   paintMeasurementField(painter, rect, "Sample:", sampleString);
   paintMeasurementField(painter, rect, "Time:", time);
+  paintMeasurementField(painter, rect, "Value:", valueString);
   paintMeasurementField(painter, rect, "Period:", period);
   paintMeasurementField(painter, rect, "Frequency:", frequency);
   paintMeasurementField(painter, rect, "Width (H):", widthH);

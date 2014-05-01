@@ -145,3 +145,35 @@ int GraphWidgetPluginInstance::getBytesPerSample() const {
   }
   return ceil((float)bits / 8.0);
 }
+
+double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
+  int bufferIndex = getBytesPerSample() * sample;
+  unsigned char bufferTemp = getBuffer()[bufferIndex];
+  int bufferTempBit = 0;
+
+  uint temp = 0;
+  const GraphSignal* signal = NULL;
+  for(int s = 0; s <= signalNumber; s++) {
+    signal = getSignal(s);
+    temp = 0;
+    for(int signalBit=0; signalBit < signal->bits; signalBit++) {
+      temp = (temp << 1) | (bufferTemp & 0x80 ? 0x01 : 0x00);
+      bufferTemp = bufferTemp << 1;
+      bufferTempBit++;
+      if(bufferTempBit == 8) {
+        bufferIndex++;
+        if(bufferIndex == getBufferSize()) {
+          bufferIndex = 0;
+        }
+        bufferTempBit = 0;
+        bufferTemp = getBuffer()[bufferIndex];
+      }
+    }
+  }
+
+  if(signal == NULL) {
+    return 0;
+  }
+
+  return (double)temp / (double)(signal->maxValue) * (signal->scaleMax - signal->scaleMin) + signal->scaleMin;
+}

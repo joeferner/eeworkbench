@@ -35,6 +35,7 @@ public:
   int getBufferAvailable() const { return m_bufferAvailable; }
   double getTimePerSample() const { return m_timePerSample; }
   int getBytesPerSample() const;
+  double getValue(int sample, int signal);
 
 private:
   GraphWidget* m_widget;

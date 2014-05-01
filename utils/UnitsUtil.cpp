@@ -13,7 +13,7 @@ UnitsUtil::UnitsUtil()
 QString UnitsUtil::toString(double f, const QString& unit) {
   QString str;
   if(fabs(f) < PICO) {
-    str = "0";
+    return "0" + unit;
   } else if(fabs(f) < NANO) {
     str.sprintf("%.2fp", f / PICO);
   } else if(fabs(f) < MICRO) {
