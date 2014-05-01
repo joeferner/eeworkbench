@@ -27,7 +27,7 @@ private:
   int m_marginRight;
   int m_marginTop;
   int m_lastMouseSignal;
-  int m_lastMouseSample;
+  double m_lastMouseSample;
   QPoint m_mousePosition;
   QRect m_measurementHeadingTextBoundingRect;
   QRect m_measurementValueTextBoundingRect;

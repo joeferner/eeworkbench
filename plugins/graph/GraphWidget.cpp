@@ -40,7 +40,7 @@ void GraphWidget::mouseMoveEvent(QMouseEvent* event) {
     requireRepaint = true;
   }
 
-  int sample = -1;
+  double sample = -1;
   if(m_mousePosition.x() > m_marginLeft && m_mousePosition.y() > m_marginTop) {
     sample = xPositionToSample(m_mousePosition.x());
   }
@@ -184,7 +184,7 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   QRect rect(clippingRect.left(), clippingRect.top(), clippingRect.width(), clippingRect.height());
 
   QString channel = "-";
-  QString sample = "-";
+  QString sampleString = "-";
   QString time = "-";
   QString period = "-";
   QString frequency = "-";
@@ -198,11 +198,15 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   }
 
   if(m_lastMouseSample != -1) {
-    sample = QString::number(m_lastMouseSample);
+    double timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
+    int sample = (int)floor(m_lastMouseSample);
+
+    sampleString = QString::number(sample);
+    time = UnitsUtil::toString((float)sample * timePerSample, "s");
   }
 
   paintMeasurementField(painter, rect, "Channel:", channel);
-  paintMeasurementField(painter, rect, "Sample:", sample);
+  paintMeasurementField(painter, rect, "Sample:", sampleString);
   paintMeasurementField(painter, rect, "Time:", time);
   paintMeasurementField(painter, rect, "Period:", period);
   paintMeasurementField(painter, rect, "Frequency:", frequency);
