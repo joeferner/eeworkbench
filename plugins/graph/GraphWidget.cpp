@@ -245,24 +245,27 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
       painter.setPen(pen);
       painter.setBrush(brush);
 
-      int y1 = 0;
-      int y2 = viewport()->height();
+      int y = (m_signalRects[m_lastMouseSignal].top() + m_signalRects[m_lastMouseSignal].bottom()) / 2;
+      int x0 = sampleToX(sample0);
+      int x1 = sampleToX(sample1);
+      int x2 = sampleToX(sample2);
+      int arrowSize = 5;
 
-      qDebug() << rising << "," << sample0 << "," << sample1 << "," << sample2;
-      int x = sampleToX(sample0);
-      pen.setColor(QColor(255,0,0));
+      pen.setColor(QColor(255,255,255));
       painter.setPen(pen);
-      painter.drawLine(x, y1, x, y2);
+      painter.drawLine(x0, y, x1, y);
+      painter.drawLine(x0, y, x0 + arrowSize, y - arrowSize);
+      painter.drawLine(x0, y, x0 + arrowSize, y + arrowSize);
+      painter.drawLine(x1, y, x1 - arrowSize, y - arrowSize);
+      painter.drawLine(x1, y, x1 - arrowSize, y + arrowSize);
 
-      x = sampleToX(sample1);
-      pen.setColor(QColor(0,255,0));
+      pen.setColor(QColor(255,255,255));
       painter.setPen(pen);
-      painter.drawLine(x, y1, x, y2);
-
-      x = sampleToX(sample2);
-      pen.setColor(QColor(0,0,255));
-      painter.setPen(pen);
-      painter.drawLine(x, y1, x, y2);
+      painter.drawLine(x1, y, x2, y);
+      painter.drawLine(x1, y, x1 + arrowSize, y - arrowSize);
+      painter.drawLine(x1, y, x1 + arrowSize, y + arrowSize);
+      painter.drawLine(x2, y, x2 - arrowSize, y - arrowSize);
+      painter.drawLine(x2, y, x2 - arrowSize, y + arrowSize);
     }
   }
 
