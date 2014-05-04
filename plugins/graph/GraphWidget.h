@@ -20,6 +20,7 @@ public slots:
 protected:
   virtual void paintEvent(QPaintEvent* painter);
   virtual void mouseMoveEvent(QMouseEvent* event);
+  virtual void wheelEvent(QWheelEvent* event);
 
 private:
   double m_pixelsPerSample;

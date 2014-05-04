@@ -4,6 +4,7 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <math.h>
 #include "../../utils/UnitsUtil.h"
 
@@ -52,6 +53,16 @@ void GraphWidget::mouseMoveEvent(QMouseEvent* event) {
   if(requireRepaint) {
     viewport()->update();
   }
+}
+
+void GraphWidget::wheelEvent(QWheelEvent* event) {
+  if(event->modifiers() & Qt::ControlModifier) {
+    m_pixelsPerSample += event->delta() / 120.0;
+  } else {
+    int v = horizontalScrollBar()->value() - (event->delta() / 5.0);
+    horizontalScrollBar()->setValue(v);
+  }
+  viewport()->update();
 }
 
 void GraphWidget::paintEvent(QPaintEvent*)

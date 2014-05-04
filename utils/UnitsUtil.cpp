@@ -16,17 +16,23 @@ UnitsUtil::UnitsUtil()
 QString UnitsUtil::toString(double f, const QString& unit) {
   QString str;
   if(f < 1 && f > -1) {
+    QString prefix;
     if(fabs(f) < PICO) {
       return "0" + unit;
     } else if(fabs(f) < NANO) {
-      str.sprintf("%.3fp", f / PICO);
+      prefix = "p";
+      str.sprintf("%.3f", f / PICO);
     } else if(fabs(f) < MICRO) {
-      str.sprintf("%.3fn", f / NANO);
+      prefix = "n";
+      str.sprintf("%.3f", f / NANO);
     } else if(fabs(f) < MILLI) {
-      str.sprintf("%.3fu", f / MICRO);
+      prefix = QChar(0xB5);
+      str.sprintf("%.3f", f / MICRO);
     } else if(fabs(f) < 1.0f) {
-      str.sprintf("%.3fm", f / MILLI);
+      prefix = "m";
+      str.sprintf("%.3f", f / MILLI);
     } else {
+      prefix = "";
       str.sprintf("%.3f", f);
     }
     while(str.endsWith("0")) {
@@ -35,6 +41,7 @@ QString UnitsUtil::toString(double f, const QString& unit) {
     if(str.endsWith(".")) {
       str = str.remove(str.length() - 1, 1);
     }
+    str += prefix;
   } else {
     if(fabs(f) > GIGA) {
       str.sprintf("%.3fk", f / GIGA);
