@@ -147,6 +147,14 @@ int GraphWidgetPluginInstance::getBytesPerSample() const {
 }
 
 double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
+  int totalNumberOfSamples = m_bufferSize / getBytesPerSample();
+  while(sample < 0) {
+    sample += totalNumberOfSamples;
+  }
+  while(sample >= totalNumberOfSamples) {
+    sample -= totalNumberOfSamples;
+  }
+
   int bufferIndex = getBytesPerSample() * sample;
   unsigned char bufferTemp = getBuffer()[bufferIndex];
   int bufferTempBit = 0;
@@ -176,4 +184,38 @@ double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
   }
 
   return (double)temp / (double)(signal->maxValue) * (signal->scaleMax - signal->scaleMin) + signal->scaleMin;
+}
+
+int GraphWidgetPluginInstance::findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn) {
+  double startingValue = getValue(startingSample, signalNumber);
+  int count;
+  int sample;
+  double previousValue = startingValue;
+  for(count=0, sample = startingSample + direction; count < m_bufferAvailable; count++, sample += direction) {
+    double newValue = getValue(sample, signalNumber);
+    if(fn(startingValue, previousValue, newValue)) {
+      if(direction < 0) {
+        sample++;
+      }
+      return sample;
+    }
+    previousValue = newValue;
+  }
+  return -1;
+}
+
+bool GraphWidgetPluginInstance::sampleCompareNotEqual(double originalValue, double d1, double d2) {
+  return fabs(originalValue - d2) > 0.000000001;
+}
+
+bool GraphWidgetPluginInstance::sampleCompareEqual(double originalValue, double d1, double d2) {
+  return fabs(originalValue - d2) < 0.000000001;
+}
+
+bool GraphWidgetPluginInstance::sampleCompareFallingThrough(double originalValue, double d1, double d2) {
+  return d1 >= originalValue && d2 < originalValue;
+}
+
+bool GraphWidgetPluginInstance::sampleCompareRisingThrough(double originalValue, double d1, double d2) {
+  return d1 <= originalValue && d2 > originalValue;
 }

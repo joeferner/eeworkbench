@@ -21,6 +21,12 @@ public:
   GraphWidgetPluginInstance();
   virtual ~GraphWidgetPluginInstance();
 
+  typedef bool(*sampleCompareFn)(double originalValue, double d1, double d2);
+  static bool sampleCompareNotEqual(double originalValue, double d1, double d2);
+  static bool sampleCompareEqual(double originalValue, double d1, double d2);
+  static bool sampleCompareFallingThrough(double originalValue, double d1, double d2);
+  static bool sampleCompareRisingThrough(double originalValue, double d1, double d2);
+
   virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
   virtual QWidget* getWidget();
   void addSignal(const QString& name, int bits, double scaleMin, double scaleMax);
@@ -36,6 +42,7 @@ public:
   double getTimePerSample() const { return m_timePerSample; }
   int getBytesPerSample() const;
   double getValue(int sample, int signal);
+  int findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn);
 
 private:
   GraphWidget* m_widget;

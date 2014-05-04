@@ -182,9 +182,9 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   QString valueString = "-";
   QString periodString = "-";
   QString frequencyString = "-";
-  QString widthH = "-";
-  QString widthL = "-";
-  QString dutyCycle = "-";
+  QString widthHString = "-";
+  QString widthLString = "-";
+  QString dutyCycleString = "-";
 
   if(m_lastMouseSignal != -1) {
     const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(m_lastMouseSignal);
@@ -202,60 +202,43 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
       double value = m_graphWidgetPluginInstance->getValue(sample, m_lastMouseSignal);
       valueString = UnitsUtil::toString(value, "V");
 
-      // find the next value that doesn't equal the current value to determine if the signal is rising for falling
-      m_lastMouseSampleRising = true;
-      int i;
-      for(i = (int)(ceil(m_lastMouseSample) + 0.1); i<m_graphWidgetPluginInstance->getBufferAvailable(); i++) {
-        double v = m_graphWidgetPluginInstance->getValue(i, m_lastMouseSignal);
-        if(v > value) {
-          m_lastMouseSampleRising = true;
-          break;
-        } else if(v < value) {
-          m_lastMouseSampleRising = false;
-        }
-      }
+      // find the beginning of this value
+      int sample0 = m_graphWidgetPluginInstance->findSample(m_lastMouseSample, m_lastMouseSignal, -1, GraphWidgetPluginInstance::sampleCompareNotEqual);
 
-      // find the 1st crossing point before the point
-      double crossing0Value = 0;
-      for(i = (int)(ceil(m_lastMouseSample) + 0.1); i >= 0; i--) {
-        crossing0Value = m_graphWidgetPluginInstance->getValue(i, m_lastMouseSignal);
-        if((!m_lastMouseSampleRising && crossing0Value <= value) || (m_lastMouseSampleRising && crossing0Value >= value)) {
-          m_lastMouseSampleCrossing0 = i;
-          break;
-        }
-      }
+      bool rising = m_graphWidgetPluginInstance->getValue(sample0, m_lastMouseSignal) > m_graphWidgetPluginInstance->getValue(sample0 - 1, m_lastMouseSignal);
 
-      // find the 1st crossing point
-      double crossing1Value = 0;
-      for(i = (int)(ceil(m_lastMouseSample) + 0.1); i < m_graphWidgetPluginInstance->getBufferAvailable(); i++) {
-        crossing1Value = m_graphWidgetPluginInstance->getValue(i, m_lastMouseSignal);
-        if((m_lastMouseSampleRising && crossing1Value <= value) || (!m_lastMouseSampleRising && crossing1Value >= value)) {
-          m_lastMouseSampleCrossing1 = i;
-          break;
-        }
-      }
+      // find the next crossing point.
+      int sample1 = m_graphWidgetPluginInstance->findSample(
+            m_lastMouseSample,
+            m_lastMouseSignal,
+            1,
+            rising ? GraphWidgetPluginInstance::sampleCompareFallingThrough : GraphWidgetPluginInstance::sampleCompareRisingThrough);
 
-      // find the 2st crossing point
-      double crossing2Value = 0;
-      for(; i < m_graphWidgetPluginInstance->getBufferAvailable(); i++) {
-        crossing2Value = m_graphWidgetPluginInstance->getValue(i, m_lastMouseSignal);
-        if((!m_lastMouseSampleRising && crossing2Value <= value) || (m_lastMouseSampleRising && crossing2Value >= value)) {
-          m_lastMouseSampleCrossing2 = i;
-          break;
-        }
-      }
+      // find the next equal point
+      int sample2 = m_graphWidgetPluginInstance->findSample(
+            sample1,
+            m_lastMouseSignal,
+            1,
+            rising ? GraphWidgetPluginInstance::sampleCompareRisingThrough : GraphWidgetPluginInstance::sampleCompareFallingThrough);
 
-      double period = (m_lastMouseSampleCrossing2 - m_lastMouseSampleCrossing0) * m_graphWidgetPluginInstance->getTimePerSample();
+      double period = (sample2 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
 
       periodString = UnitsUtil::toString(period, "s");
       frequencyString = UnitsUtil::toString(1.0 / period, "Hz");
-      if(m_lastMouseSampleRising) {
-        widthH = UnitsUtil::toString((m_lastMouseSampleCrossing1 - m_lastMouseSampleCrossing0) * m_graphWidgetPluginInstance->getTimePerSample(), "s");
-        widthL = UnitsUtil::toString((m_lastMouseSampleCrossing2 - m_lastMouseSampleCrossing1) * m_graphWidgetPluginInstance->getTimePerSample(), "s");
+
+      double widthH, widthL;
+      if(rising) {
+        widthH = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
+        widthL = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
       } else {
-        widthL = UnitsUtil::toString((m_lastMouseSampleCrossing1 - m_lastMouseSampleCrossing0) * m_graphWidgetPluginInstance->getTimePerSample(), "s");
-        widthH = UnitsUtil::toString((m_lastMouseSampleCrossing2 - m_lastMouseSampleCrossing1) * m_graphWidgetPluginInstance->getTimePerSample(), "s");
+        widthL = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
+        widthH = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
       }
+      widthHString = UnitsUtil::toString(widthH, "s");
+      widthLString = UnitsUtil::toString(widthL, "s");
+
+      double dutyCycle = fabs(widthH / (widthH + widthL));
+      dutyCycleString = QString::number(dutyCycle * 100.0, 'f', 1) + "%";
 
       QBrush brush(QColor(255,255,255));
       QPen pen(brush, 1, Qt::SolidLine);
@@ -265,18 +248,18 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
       int y1 = 0;
       int y2 = viewport()->height();
 
-      qDebug() << m_lastMouseSampleCrossing0 << "," << m_lastMouseSampleCrossing1 << "," << m_lastMouseSampleCrossing2;
-      int x = sampleToX(m_lastMouseSampleCrossing0);
+      qDebug() << rising << "," << sample0 << "," << sample1 << "," << sample2;
+      int x = sampleToX(sample0);
       pen.setColor(QColor(255,0,0));
       painter.setPen(pen);
       painter.drawLine(x, y1, x, y2);
 
-      x = sampleToX(m_lastMouseSampleCrossing1);
+      x = sampleToX(sample1);
       pen.setColor(QColor(0,255,0));
       painter.setPen(pen);
       painter.drawLine(x, y1, x, y2);
 
-      x = sampleToX(m_lastMouseSampleCrossing2);
+      x = sampleToX(sample2);
       pen.setColor(QColor(0,0,255));
       painter.setPen(pen);
       painter.drawLine(x, y1, x, y2);
@@ -295,9 +278,9 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   paintMeasurementField(painter, rect, "Value:", valueString);
   paintMeasurementField(painter, rect, "Period:", periodString);
   paintMeasurementField(painter, rect, "Frequency:", frequencyString);
-  paintMeasurementField(painter, rect, "Width (H):", widthH);
-  paintMeasurementField(painter, rect, "Width (L):", widthL);
-  paintMeasurementField(painter, rect, "Duty Cycle:", dutyCycle);
+  paintMeasurementField(painter, rect, "Width (H):", widthHString);
+  paintMeasurementField(painter, rect, "Width (L):", widthLString);
+  paintMeasurementField(painter, rect, "Duty Cycle:", dutyCycleString);
 
   painter.setClipping(false);
 }
