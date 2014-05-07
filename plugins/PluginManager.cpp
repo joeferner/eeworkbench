@@ -1,20 +1,14 @@
 #include "PluginManager.h"
 #include "fileInput/FileInputPlugin.h"
+#include "serialPort/SerialPortPlugin.h"
 #include "graph/GraphPlugin.h"
 
-PluginManager::PluginManager() :
-  m_activeInputPlugin(0)
+PluginManager::PluginManager()
 {
   m_inputPlugins.append(new FileInputPlugin());
+  m_inputPlugins.append(new SerialPortPlugin());
 
   m_widgetPlugins.append(new GraphPlugin());
-}
-
-InputPlugin* PluginManager::getActiveInputPlugin() {
-  if(m_activeInputPlugin < 0 || m_activeInputPlugin >= m_inputPlugins.count()) {
-    return NULL;
-  }
-  return m_inputPlugins.at(m_activeInputPlugin);
 }
 
 const WidgetPlugin* PluginManager::getWidgetPlugin(const QString& name) {

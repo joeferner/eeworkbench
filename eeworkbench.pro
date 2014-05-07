@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     CommandRunner.cpp \
     plugins/WidgetPluginInstance.cpp \
     plugins/graph/GraphWidgetPluginInstance.cpp \
-    utils/UnitsUtil.cpp
+    utils/UnitsUtil.cpp \
+    plugins/serialPort/SerialPortPlugin.cpp \
+    plugins/serialPort/SerialPortConnectDialog.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -49,7 +51,10 @@ HEADERS  += MainWindow.h \
     CommandRunner.h \
     plugins/WidgetPluginInstance.h \
     plugins/graph/GraphWidgetPluginInstance.h \
-    utils/UnitsUtil.h
+    utils/UnitsUtil.h \
+    plugins/serialPort/SerialPortPlugin.h \
+    plugins/serialPort/SerialPortConnectDialog.h
 
 FORMS    += MainWindow.ui \
-    plugins/fileInput/FileInputConnectDialog.ui
+    plugins/fileInput/FileInputConnectDialog.ui \
+    plugins/serialPort/SerialPortConnectDialog.ui

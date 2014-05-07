@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QLabel>
 #include <QMap>
+#include <QComboBox>
 #include "plugins/PluginManager.h"
 #include "plugins/WidgetPluginInstance.h"
 #include "InputReaderThread.h"
@@ -48,6 +49,8 @@ private:
   InputReaderThread* m_inputReaderThread;
   CommandRunner m_commandRunner;
   QLabel* m_descriptionLabel;
+  QComboBox* m_inputSelectComboBox;
+  InputPlugin* m_connectedInputPlugin;
   QMap<QString, WidgetPluginInstance*> m_widgets;
 
   void stopInputReaderThread();

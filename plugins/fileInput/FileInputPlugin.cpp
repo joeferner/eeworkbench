@@ -56,6 +56,9 @@ bool FileInputPlugin::readByte(uchar* ch) {
 }
 
 qint64 FileInputPlugin::read(unsigned char* buffer, qint64 bytesToRead) {
+  if(!isConnected()) {
+    return 0;
+  }
   return m_file->read((char*)buffer, bytesToRead);
 }
 

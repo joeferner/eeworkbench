@@ -17,7 +17,7 @@ public:
   virtual bool readByte(uchar* ch);
   virtual qint64 read(unsigned char* buffer, qint64 bytesToRead);
   virtual qint64 available();
-  virtual QString getName() const { return "fileInput"; }
+  virtual QString getName() const { return "File"; }
 
 private:
   void closeFile();

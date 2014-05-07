@@ -2,12 +2,17 @@
 #include "ui_MainWindow.h"
 #include "plugins/graph/GraphWidget.h"
 #include <QDebug>
+#include <QSettings>
+
+#define SETTINGS_PREFIX       "MainWindow/"
+#define INPUT_PLUGIN_SETTING  SETTINGS_PREFIX "InputPlugin"
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   m_ui(new Ui::MainWindow),
   m_inputReaderThread(NULL),
-  m_commandRunner(this)
+  m_commandRunner(this),
+  m_connectedInputPlugin(NULL)
 {
   m_ui->setupUi(this);
 
@@ -16,6 +21,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
   m_descriptionLabel = new QLabel(this);
   statusBar()->addWidget(m_descriptionLabel);
+
+  m_inputSelectComboBox = new QComboBox(m_ui->mainToolBar);
+  foreach (InputPlugin* inputPlugin, m_pluginManager.getInputPlugins()) {
+    m_inputSelectComboBox->addItem(inputPlugin->getName(), QVariant::fromValue(inputPlugin));
+  }
+  m_ui->mainToolBar->insertWidget(m_ui->actionConnect, m_inputSelectComboBox);
+
+  QSettings settings;
+  QString selectedInputPlugin = settings.value(INPUT_PLUGIN_SETTING, "").toString();
+  if(selectedInputPlugin.length() > 0) {
+    m_inputSelectComboBox->setCurrentText(selectedInputPlugin);
+  }
 
   connect(this, SIGNAL(addWidgetPluginInstance(WidgetPluginInstance*,int,int,int,int)), this, SLOT(onAddWidgetPluginInstance(WidgetPluginInstance*,int,int,int,int)));
 }
@@ -28,38 +45,47 @@ MainWindow::~MainWindow()
 void MainWindow::on_actionConnect_triggered() {
   m_ui->actionConnect->setEnabled(false);
 
-  InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
-
-  if(activeInputPlugin->isConnected()) {
-    QObject::connect(activeInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
-    activeInputPlugin->disconnect();
+  if(m_connectedInputPlugin != NULL && m_connectedInputPlugin->isConnected()) {
+    QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    m_connectedInputPlugin->disconnect();
+    m_connectedInputPlugin = NULL;
   } else {
+    m_connectedInputPlugin = m_inputSelectComboBox->currentData().value<InputPlugin*>();
+    if(m_connectedInputPlugin == NULL) {
+      qDebug() << "Could not get selected plugin";
+      return;
+    }
     stopInputReaderThread();
     clearWidgets();
-    QObject::connect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
-    activeInputPlugin->connect();
+    QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+    m_connectedInputPlugin->connect();
+
+    QSettings settings;
+    settings.setValue(INPUT_PLUGIN_SETTING, m_connectedInputPlugin->getName());
+    settings.sync();
   }
 }
 
 void MainWindow::onInputPluginConnected() {
-  InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
-  QObject::disconnect(activeInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+  QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
   m_ui->actionConnect->setText("Disconnect");
   m_ui->actionConnect->setEnabled(true);
-  m_inputReaderThread = new InputReaderThread(&m_commandRunner, activeInputPlugin);
+  m_inputReaderThread = new InputReaderThread(&m_commandRunner, m_connectedInputPlugin);
   m_inputReaderThread->start();
 }
 
 void MainWindow::onInputPluginDisconnected() {
-  InputPlugin* activeInputPlugin = m_pluginManager.getActiveInputPlugin();
-  QObject::disconnect(activeInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+  QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
   m_ui->actionConnect->setText("Connect");
   m_ui->actionConnect->setEnabled(true);
   stopInputReaderThread();
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
-  m_pluginManager.getActiveInputPlugin()->disconnect();
+  if(m_connectedInputPlugin != NULL) {
+    m_connectedInputPlugin->disconnect();
+    m_connectedInputPlugin = NULL;
+  }
 }
 
 void MainWindow::on_actionExit_triggered() {
