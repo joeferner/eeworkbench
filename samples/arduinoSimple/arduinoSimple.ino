@@ -22,14 +22,18 @@ void loop() {
       char ch = Serial.read();
       if(ch == '\n') {
         commandBuffer[commandBufferOffset] = '\0';
-        if(!strcmp(commandBuffer, "!CONNECT")) {
+        if(commandBufferOffset == 0) {
+          continue;
+        } else if(!strcmp(commandBuffer, "!CONNECT")) {
           clearWorkbench();
+          Serial.println("+OK");
         } else {
-          Serial.println("?Invalid command");
+          Serial.println("-Invalid command");
         }
         commandBufferOffset = 0;
+      } else {
+        commandBuffer[commandBufferOffset++] = ch;
       }
-      commandBuffer[commandBufferOffset++] = ch;
     }
   }
   

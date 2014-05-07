@@ -31,7 +31,21 @@ void SerialPortPlugin::connect() {
 
     openSerialPort(portName, baudRate);
     if(m_serialPort) {
+      m_serialPort->write("\n", 1);
+      clearRead();
       m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT));
+      QString line = readLine(5000);
+      if(!line.startsWith("+OK")) {
+        qDebug() << "Invalid line" << line;
+        clearRead();
+        m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT));
+        line = readLine(5000);
+        if(!line.startsWith("+OK")) {
+          qDebug() << "Invalid line" << line;
+          m_serialPort->close();
+          m_serialPort = NULL;
+        }
+      }
       emit connected();
     }
   }
@@ -51,8 +65,11 @@ bool SerialPortPlugin::isConnected() {
 void SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
   QSerialPort* serialPort = new QSerialPort();
   serialPort->setPortName(portName);
-  serialPort->setBaudRate(baudRate);
   if(serialPort->open(QIODevice::ReadWrite)) {
+    serialPort->setBaudRate(baudRate);
+    serialPort->setDataBits(QSerialPort::Data8);
+    serialPort->setParity(QSerialPort::NoParity);
+    serialPort->setStopBits(QSerialPort::OneStop);
     m_serialPort = serialPort;
   } else {
     delete m_serialPort;

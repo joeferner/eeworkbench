@@ -16,6 +16,8 @@ public:
   virtual bool readByte(uchar* ch) = 0;
   virtual qint64 read(unsigned char* buffer, qint64 bytesToRead) = 0;
   virtual qint64 available() = 0;
+  virtual QString readLine(int timeout);
+  virtual void clearRead();
 
 signals:
   void connected();
