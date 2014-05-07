@@ -18,8 +18,11 @@ SerialPortConnectDialog::~SerialPortConnectDialog()
 void SerialPortConnectDialog::refreshPortNameList() {
   ui->portName->clear();
   foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
-    QString text = info.portName() + " (" + info.description() + "/" + info.manufacturer() + ")";
-    ui->portName->addItem(text, info.portName());
+    if(info.manufacturer().length() > 0) {
+      QString description = " (" + info.description() + "/" + info.manufacturer() + ")";
+      QString text = info.portName() + description;
+      ui->portName->addItem(text, info.portName());
+    }
   }
 }
 

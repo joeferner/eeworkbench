@@ -121,7 +121,9 @@ void MainWindow::runCommand(InputReaderThread* inputReaderThread, const QString&
 }
 
 void MainWindow::runCommand(const QString& functionName, QStringList args) {
-  if(functionName == "set") {
+  if(functionName == "clear") {
+    clearWidgets();
+  } else if(functionName == "set") {
     if(args.length() == 2) {
       runSetCommand(args.at(0), args.at(1));
     } else {

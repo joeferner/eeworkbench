@@ -7,6 +7,8 @@
 #define PORT_NAME_SETTING  SETTINGS_PREFIX "PortName"
 #define BAUD_RATE_SETTING  SETTINGS_PREFIX "BaudRate"
 
+#define CMD_CONNECT "!CONNECT"
+
 SerialPortPlugin::SerialPortPlugin() :
   m_serialPort(NULL)
 {
@@ -18,7 +20,7 @@ void SerialPortPlugin::connect() {
   QSettings settings;
   SerialPortConnectDialog dlg;
   dlg.setPortName(settings.value(PORT_NAME_SETTING, "").toString());
-  dlg.setBaudRate(settings.value(BAUD_RATE_SETTING, 9600).toInt());
+  dlg.setBaudRate(settings.value(BAUD_RATE_SETTING, 115200).toInt());
   if(dlg.exec() == QDialog::Accepted){
     QString portName = dlg.getPortName();
     int baudRate = dlg.getBaudRate();
@@ -29,6 +31,7 @@ void SerialPortPlugin::connect() {
 
     openSerialPort(portName, baudRate);
     if(m_serialPort) {
+      m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT));
       emit connected();
     }
   }
@@ -48,6 +51,7 @@ bool SerialPortPlugin::isConnected() {
 void SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
   QSerialPort* serialPort = new QSerialPort();
   serialPort->setPortName(portName);
+  serialPort->setBaudRate(baudRate);
   if(serialPort->open(QIODevice::ReadWrite)) {
     m_serialPort = serialPort;
   } else {
