@@ -65,6 +65,10 @@ void GraphWidget::wheelEvent(QWheelEvent* event) {
   viewport()->update();
 }
 
+void GraphWidget::updateData() {
+  viewport()->update();
+}
+
 void GraphWidget::paintEvent(QPaintEvent*)
 {
   QPainter painter;

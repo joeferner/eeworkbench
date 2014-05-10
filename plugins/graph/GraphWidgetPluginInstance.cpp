@@ -134,7 +134,7 @@ void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double 
 QWidget* GraphWidgetPluginInstance::getWidget() {
   if(m_widget == NULL) {
     m_widget = new GraphWidget(this);
-    connect(this, SIGNAL(dataAdded()), m_widget, SLOT(repaint()));
+    connect(this, SIGNAL(dataAdded()), m_widget, SLOT(updateData()));
   }
   return m_widget;
 }

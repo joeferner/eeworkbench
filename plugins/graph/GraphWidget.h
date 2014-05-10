@@ -16,6 +16,7 @@ public:
 signals:
 
 public slots:
+  void updateData();
 
 protected:
   virtual void paintEvent(QPaintEvent* painter);
