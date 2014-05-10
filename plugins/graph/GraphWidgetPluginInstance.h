@@ -5,6 +5,7 @@
 #include "GraphWidget.h"
 #include <QList>
 #include <QColor>
+#include <QObject>
 
 struct GraphSignal {
   QString name;
@@ -17,6 +18,8 @@ struct GraphSignal {
 
 class GraphWidgetPluginInstance : public WidgetPluginInstance
 {
+  Q_OBJECT
+
 public:
   GraphWidgetPluginInstance();
   virtual ~GraphWidgetPluginInstance();
@@ -58,6 +61,9 @@ private:
   void writeByteToBuffer(unsigned char b);
   void incrementBufferWritePos(int i);
   void set(const QString& name, const QString& value);
+
+signals:
+  void dataAdded();
 };
 
 #endif // GRAPHWIDGETPLUGININSTANCE_H

@@ -46,15 +46,11 @@ void MainWindow::on_actionConnect_triggered() {
   m_ui->actionConnect->setEnabled(false);
 
   if(m_connectedInputPlugin != NULL && m_connectedInputPlugin->isConnected()) {
-    m_connectedInputPlugin->disconnect();
-    m_connectedInputPlugin = NULL;
+    closeConnectedInputPlugin();
   } else {
     m_ui->actionConnect->setText("Connecting");
 
-    if(m_connectedInputPlugin != NULL) {
-      QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
-      QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
-    }
+    closeConnectedInputPlugin();
 
     m_connectedInputPlugin = m_inputSelectComboBox->currentData().value<InputPlugin*>();
     QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
@@ -85,13 +81,22 @@ void MainWindow::onInputPluginDisconnected() {
   m_ui->actionConnect->setText("Connect");
   m_ui->actionConnect->setEnabled(true);
   stopInputReaderThread();
+
+  if(m_connectedInputPlugin != NULL) {
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    m_connectedInputPlugin = NULL;
+  }
+}
+
+void MainWindow::closeConnectedInputPlugin() {
+  if(m_connectedInputPlugin != NULL) {
+    m_connectedInputPlugin->disconnect();
+  }
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
-  if(m_connectedInputPlugin != NULL) {
-    m_connectedInputPlugin->disconnect();
-    m_connectedInputPlugin = NULL;
-  }
+  closeConnectedInputPlugin();
 }
 
 void MainWindow::on_actionExit_triggered() {
@@ -99,10 +104,11 @@ void MainWindow::on_actionExit_triggered() {
 }
 
 void MainWindow::clearWidgets() {
-  foreach(WidgetPluginInstance* widgetPluginInstance, m_widgets.values()) {
+  QList<WidgetPluginInstance*> widgetPluginInstances = m_widgets.values();
+  m_widgets.clear();
+  foreach(WidgetPluginInstance* widgetPluginInstance, widgetPluginInstances) {
     delete widgetPluginInstance;
   }
-  m_widgets.clear();
 }
 
 void MainWindow::stopInputReaderThread() {
@@ -110,6 +116,7 @@ void MainWindow::stopInputReaderThread() {
     return;
   }
   m_inputReaderThread->stop();
+  delete m_inputReaderThread;
   m_inputReaderThread = NULL;
 }
 

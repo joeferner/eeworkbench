@@ -2,10 +2,13 @@
 #define WIDGETPLUGININSTANCE_H
 
 #include <QWidget>
+#include <QObject>
 #include "../InputReaderThread.h"
 
-class WidgetPluginInstance
+class WidgetPluginInstance : public QObject
 {
+  Q_OBJECT
+
 public:
   WidgetPluginInstance();
   virtual ~WidgetPluginInstance();

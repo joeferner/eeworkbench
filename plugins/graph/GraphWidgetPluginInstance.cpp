@@ -24,6 +24,8 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
   foreach(GraphSignal* signal, m_signals) {
     delete signal;
   }
+
+  disconnect(this, SIGNAL(dataAdded()), m_widget, SLOT(repaint()));
   delete m_widget;
 }
 
@@ -97,9 +99,7 @@ void GraphWidgetPluginInstance::addData(QStringList args) {
 
   writeByteToBuffer(temp);
 
-  if(m_widget) {
-    m_widget->repaint();
-  }
+  emit dataAdded();
 }
 
 void GraphWidgetPluginInstance::writeByteToBuffer(unsigned char b) {
@@ -134,6 +134,7 @@ void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double 
 QWidget* GraphWidgetPluginInstance::getWidget() {
   if(m_widget == NULL) {
     m_widget = new GraphWidget(this);
+    connect(this, SIGNAL(dataAdded()), m_widget, SLOT(repaint()));
   }
   return m_widget;
 }

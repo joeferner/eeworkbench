@@ -110,26 +110,44 @@ bool SerialPortPlugin::isConnected() {
 bool SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
   QSerialPort* serialPort = new QSerialPort("/dev/ttyUSB0");//portName);
   serialPort->setReadBufferSize(10 * 1024);
-  if(serialPort->open(QIODevice::ReadWrite)) {
-    qDebug() << "Serial port" << portName << " opened";
-    if(serialPort->setBaudRate(baudRate)
-       && serialPort->setDataBits(QSerialPort::Data8)
-       && serialPort->setParity(QSerialPort::NoParity)
-       && serialPort->setStopBits(QSerialPort::OneStop)
-       && serialPort->isOpen()
-       && serialPort->isReadable()) {
-
-      qDebug() << "Baud rate:" << serialPort->baudRate();
-      qDebug() << "Data bits:" << serialPort->dataBits();
-      qDebug() << "Parity:" << serialPort->parity();
-      qDebug() << "Stop bits:" << serialPort->stopBits();
-      qDebug() << "Flow control:" << serialPort->flowControl();
-      qDebug() << "Read buffer size:" << serialPort->readBufferSize();
-
-      m_serialPort = serialPort;
-      return true;
-    }
+  if(!serialPort->open(QIODevice::ReadWrite)) {
+    qDebug() << "Could not open serial port";
+    goto openFail;
   }
+
+  qDebug() << "Serial port" << portName << " opened";
+
+  if(!serialPort->setBaudRate(baudRate)) {
+    qDebug() << "Could not set baud rate";
+    goto openFail;
+  }
+
+  if(!serialPort->setDataBits(QSerialPort::Data8)) {
+    qDebug() << "Could not set data bits";
+    goto openFail;
+  }
+
+  if(!serialPort->setParity(QSerialPort::NoParity)) {
+    qDebug() << "Could not set parity";
+    goto openFail;
+  }
+
+  if(!serialPort->setStopBits(QSerialPort::OneStop)) {
+    qDebug() << "Could not set stop bits";
+    goto openFail;
+  }
+
+  qDebug() << "Baud rate:" << serialPort->baudRate();
+  qDebug() << "Data bits:" << serialPort->dataBits();
+  qDebug() << "Parity:" << serialPort->parity();
+  qDebug() << "Stop bits:" << serialPort->stopBits();
+  qDebug() << "Flow control:" << serialPort->flowControl();
+  qDebug() << "Read buffer size:" << serialPort->readBufferSize();
+
+  m_serialPort = serialPort;
+  return true;
+
+openFail:
   delete serialPort;
   return false;
 }
@@ -140,7 +158,13 @@ void SerialPortPlugin::closeSerialPort() {
   }
   qDebug() << "closing serial port";
   m_serialPort->close();
+  for(int i = 0; i < 10 && m_serialPort->isOpen(); i++) {
+    qDebug() << "waiting for serial port to close";
+    QThread::msleep(100);
+  }
+  delete m_serialPort;
   m_serialPort = NULL;
+  qDebug() << "serial port closed";
 }
 
 bool SerialPortPlugin::readByte(uchar* ch) {

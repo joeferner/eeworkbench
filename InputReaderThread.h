@@ -27,6 +27,7 @@ protected:
 
 private:
   bool m_run;
+  bool m_stopped;
   InputReaderThreadTarget* m_inputReaderThreadTarget;
   InputPlugin* m_inputPlugin;
   RingBuffer m_ringBuffer;

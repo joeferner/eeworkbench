@@ -55,6 +55,7 @@ private:
 
   void stopInputReaderThread();
   void clearWidgets();
+  void closeConnectedInputPlugin();
   void runCommand(const QString& functionName, QStringList args);
   void runSetCommand(const QString& name, const QString& value);
   void runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan);
