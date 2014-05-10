@@ -28,7 +28,7 @@ void CommandRunner::processLine(InputReaderThread* inputReaderThread, const QStr
 void CommandRunner::runCommand(InputReaderThread* inputReaderThread, const QString& command) {
   int scopeAndFunctionNameIndex = command.indexOf(' ');
   if(scopeAndFunctionNameIndex < 0) {
-    scopeAndFunctionNameIndex = command.length() - 1;
+    scopeAndFunctionNameIndex = command.length();
   }
   QString scopeAndFunctionName = command.left(scopeAndFunctionNameIndex);
   QString args = command.mid(scopeAndFunctionNameIndex + 1);

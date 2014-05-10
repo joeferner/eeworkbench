@@ -23,7 +23,8 @@ void InputReaderThread::run() {
       continue;
     }
 
-    if(b == '\n') {
+    if(b == '\r') {
+    } else if(b == '\n') {
       QString str = m_ringBuffer.readAsString();
       m_inputReaderThreadTarget->onInputReaderThreadMessage(this, str);
     } else {

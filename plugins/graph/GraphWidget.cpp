@@ -232,51 +232,53 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
             1,
             rising ? GraphWidgetPluginInstance::sampleCompareRisingThrough : GraphWidgetPluginInstance::sampleCompareFallingThrough);
 
-      double period = (sample2 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
+      if(sample2 > sample0) {
+        double period = (sample2 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
 
-      periodString = UnitsUtil::toString(period, "s");
-      frequencyString = UnitsUtil::toString(1.0 / period, "Hz");
+        periodString = UnitsUtil::toString(period, "s");
+        frequencyString = UnitsUtil::toString(1.0 / period, "Hz");
 
-      double widthH, widthL;
-      if(rising) {
-        widthH = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
-        widthL = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
-      } else {
-        widthL = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
-        widthH = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
+        double widthH, widthL;
+        if(rising) {
+          widthH = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
+          widthL = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
+        } else {
+          widthL = (sample1 - sample0) * m_graphWidgetPluginInstance->getTimePerSample();
+          widthH = (sample2 - sample1) * m_graphWidgetPluginInstance->getTimePerSample();
+        }
+        widthHString = UnitsUtil::toString(widthH, "s");
+        widthLString = UnitsUtil::toString(widthL, "s");
+
+        double dutyCycle = fabs(widthH / (widthH + widthL));
+        dutyCycleString = QString::number(dutyCycle * 100.0, 'f', 1) + "%";
+
+        QBrush brush(QColor(255,255,255));
+        QPen pen(brush, 1, Qt::SolidLine);
+        painter.setPen(pen);
+        painter.setBrush(brush);
+
+        int y = (m_signalRects[m_lastMouseSignal].top() + m_signalRects[m_lastMouseSignal].bottom()) / 2;
+        int x0 = sampleToX(sample0);
+        int x1 = sampleToX(sample1);
+        int x2 = sampleToX(sample2);
+        int arrowSize = 5;
+
+        pen.setColor(QColor(255,255,255));
+        painter.setPen(pen);
+        painter.drawLine(x0, y, x1, y);
+        painter.drawLine(x0, y, x0 + arrowSize, y - arrowSize);
+        painter.drawLine(x0, y, x0 + arrowSize, y + arrowSize);
+        painter.drawLine(x1, y, x1 - arrowSize, y - arrowSize);
+        painter.drawLine(x1, y, x1 - arrowSize, y + arrowSize);
+
+        pen.setColor(QColor(255,255,255));
+        painter.setPen(pen);
+        painter.drawLine(x1, y, x2, y);
+        painter.drawLine(x1, y, x1 + arrowSize, y - arrowSize);
+        painter.drawLine(x1, y, x1 + arrowSize, y + arrowSize);
+        painter.drawLine(x2, y, x2 - arrowSize, y - arrowSize);
+        painter.drawLine(x2, y, x2 - arrowSize, y + arrowSize);
       }
-      widthHString = UnitsUtil::toString(widthH, "s");
-      widthLString = UnitsUtil::toString(widthL, "s");
-
-      double dutyCycle = fabs(widthH / (widthH + widthL));
-      dutyCycleString = QString::number(dutyCycle * 100.0, 'f', 1) + "%";
-
-      QBrush brush(QColor(255,255,255));
-      QPen pen(brush, 1, Qt::SolidLine);
-      painter.setPen(pen);
-      painter.setBrush(brush);
-
-      int y = (m_signalRects[m_lastMouseSignal].top() + m_signalRects[m_lastMouseSignal].bottom()) / 2;
-      int x0 = sampleToX(sample0);
-      int x1 = sampleToX(sample1);
-      int x2 = sampleToX(sample2);
-      int arrowSize = 5;
-
-      pen.setColor(QColor(255,255,255));
-      painter.setPen(pen);
-      painter.drawLine(x0, y, x1, y);
-      painter.drawLine(x0, y, x0 + arrowSize, y - arrowSize);
-      painter.drawLine(x0, y, x0 + arrowSize, y + arrowSize);
-      painter.drawLine(x1, y, x1 - arrowSize, y - arrowSize);
-      painter.drawLine(x1, y, x1 - arrowSize, y + arrowSize);
-
-      pen.setColor(QColor(255,255,255));
-      painter.setPen(pen);
-      painter.drawLine(x1, y, x2, y);
-      painter.drawLine(x1, y, x1 + arrowSize, y - arrowSize);
-      painter.drawLine(x1, y, x1 + arrowSize, y + arrowSize);
-      painter.drawLine(x2, y, x2 - arrowSize, y - arrowSize);
-      painter.drawLine(x2, y, x2 - arrowSize, y + arrowSize);
     }
   }
 

@@ -1,7 +1,7 @@
 
 #define COMMAND_BUFFER_SIZE 100
 char commandBuffer[COMMAND_BUFFER_SIZE];
-int commandBufferOffset = 0;
+int commandBufferOffset;
 
 void clearWorkbench();
 
@@ -13,27 +13,32 @@ void setup() {
   pinMode(6, INPUT);
   pinMode(7, INPUT);
   
-  clearWorkbench();
+  commandBufferOffset = 0;
+  commandBuffer[0] = '\0';
 } 
 
 void loop() {
-  if(Serial.available()) {
-    while(Serial.available() && commandBufferOffset < COMMAND_BUFFER_SIZE) {
-      char ch = Serial.read();
-      if(ch == '\n') {
-        commandBuffer[commandBufferOffset] = '\0';
-        if(commandBufferOffset == 0) {
-          continue;
-        } else if(!strcmp(commandBuffer, "!CONNECT")) {
-          clearWorkbench();
-          Serial.println("+OK");
-        } else {
-          Serial.println("-Invalid command");
-        }
-        commandBufferOffset = 0;
+  while(Serial.available()) {
+    char ch = Serial.read();
+    if(ch == '\r') {
+    } else if(ch == '\n') {
+      commandBuffer[commandBufferOffset] = '\0';
+      if(commandBufferOffset == 0) {
+        continue;
+      } else if(!strcmp(commandBuffer, "!CONNECT")) {
+        Serial.println("+OK");
+        clearWorkbench();
       } else {
-        commandBuffer[commandBufferOffset++] = ch;
+        Serial.println("-Invalid command");
       }
+      commandBufferOffset = 0;
+      commandBuffer[commandBufferOffset] = '\0';
+    } else {
+      commandBuffer[commandBufferOffset++] = ch;
+      if(commandBufferOffset >= COMMAND_BUFFER_SIZE) {
+        commandBufferOffset = 0;
+      }
+      commandBuffer[commandBufferOffset] = '\0';
     }
   }
   

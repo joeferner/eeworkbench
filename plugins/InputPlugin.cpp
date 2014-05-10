@@ -1,5 +1,6 @@
 #include "InputPlugin.h"
 #include <QThread>
+#include <QDebug>
 
 InputPlugin::InputPlugin()
 {
@@ -21,12 +22,14 @@ QString InputPlugin::readLine(int timeout) {
       continue;
     }
 
-    if(b == '\n') {
+    if(b == '\r') {
+    } else if(b == '\n') {
       return line;
     } else {
       line += b;
     }
   }
+  return line;
 }
 
 void InputPlugin::clearRead() {

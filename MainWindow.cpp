@@ -46,18 +46,26 @@ void MainWindow::on_actionConnect_triggered() {
   m_ui->actionConnect->setEnabled(false);
 
   if(m_connectedInputPlugin != NULL && m_connectedInputPlugin->isConnected()) {
-    QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
     m_connectedInputPlugin->disconnect();
     m_connectedInputPlugin = NULL;
   } else {
+    m_ui->actionConnect->setText("Connecting");
+
+    if(m_connectedInputPlugin != NULL) {
+      QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+      QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    }
+
     m_connectedInputPlugin = m_inputSelectComboBox->currentData().value<InputPlugin*>();
+    QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+    QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+
     if(m_connectedInputPlugin == NULL) {
       qDebug() << "Could not get selected plugin";
       return;
     }
     stopInputReaderThread();
     clearWidgets();
-    QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
     m_connectedInputPlugin->connect();
 
     QSettings settings;
@@ -67,7 +75,6 @@ void MainWindow::on_actionConnect_triggered() {
 }
 
 void MainWindow::onInputPluginConnected() {
-  QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
   m_ui->actionConnect->setText("Disconnect");
   m_ui->actionConnect->setEnabled(true);
   m_inputReaderThread = new InputReaderThread(&m_commandRunner, m_connectedInputPlugin);
@@ -75,7 +82,6 @@ void MainWindow::onInputPluginConnected() {
 }
 
 void MainWindow::onInputPluginDisconnected() {
-  QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
   m_ui->actionConnect->setText("Connect");
   m_ui->actionConnect->setEnabled(true);
   stopInputReaderThread();
@@ -136,7 +142,7 @@ void MainWindow::runCommand(const QString& functionName, QStringList args) {
       qWarning() << "invalid number of arguments for set. Expected 6, found" << args.length();
     }
   } else {
-    qWarning() << "invalid command" << functionName << args;
+    qWarning() << "invalid command" << functionName << "args" << args;
   }
 }
 

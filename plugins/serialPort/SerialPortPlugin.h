@@ -2,8 +2,10 @@
 #define SERIALPORTPLUGIN_H
 
 #include "../InputPlugin.h"
-#include <QtSerialPort/QSerialPort>
-#include <QtSerialPort/QSerialPortInfo>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+
+class SerialPortConnectThread;
 
 class SerialPortPlugin : public InputPlugin
 {
@@ -21,11 +23,15 @@ public:
   virtual QString getName() const { return "Serial Port"; }
 
 protected:
-  void openSerialPort(const QString& portName, int baudRate);
+  bool openSerialPort(const QString& portName, int baudRate);
   void closeSerialPort();
+  bool sendConnectCommand();
+
+  friend class SerialPortConnectThread;
 
 private:
   QSerialPort* m_serialPort;
+  SerialPortConnectThread* m_connectThread;
 };
 
 #endif // SERIALPORTPLUGIN_H

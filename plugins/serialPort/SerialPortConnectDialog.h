@@ -2,7 +2,8 @@
 #define SERIALPORTCONNECTDIALOG_H
 
 #include <QDialog>
-#include <QtSerialPort/QSerialPortInfo>
+#include <QSerialPort>
+#include <QSerialPortInfo>
 
 namespace Ui {
 class SerialPortConnectDialog;
