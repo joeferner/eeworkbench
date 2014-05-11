@@ -16,7 +16,7 @@ FileInputConnectDialog::~FileInputConnectDialog()
 
 void FileInputConnectDialog::on_fileNameBrowse_clicked()
 {
-  QString fileName = QFileDialog::getOpenFileName(this, tr("Open"), QString(), tr("EEWorkbench (*.eew);;All Files (*.*)"));
+  QString fileName = QFileDialog::getOpenFileName(this, "Open", QString(), "EEWorkbench (*.eew);;All Files (*.*)");
   ui->fileName->setText(fileName);
 }
 

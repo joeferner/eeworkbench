@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QMap>
 #include <QComboBox>
+#include <QFile>
 #include "plugins/PluginManager.h"
 #include "plugins/WidgetPluginInstance.h"
 #include "InputReaderThread.h"
@@ -42,6 +43,8 @@ private slots:
 
   void on_actionExit_triggered();
 
+  void on_actionSave_triggered();
+
 private:
   Ui::MainWindow* m_ui;
   QGridLayout* m_layout;
@@ -59,6 +62,9 @@ private:
   void runCommand(const QString& functionName, QStringList args);
   void runSetCommand(const QString& name, const QString& value);
   void runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan);
+  void save(const QString& fileName);
+  void save(QFile& file);
+  int findWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance);
 };
 
 #endif // MAINWINDOW_H

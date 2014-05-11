@@ -9,7 +9,7 @@ class WidgetPlugin : public Plugin
 public:
   WidgetPlugin();
 
-  virtual WidgetPluginInstance* createInstance() const = 0;
+  virtual WidgetPluginInstance* createInstance(const QString& name) const = 0;
 };
 
 #endif // WIDGETPLUGIN_H

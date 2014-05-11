@@ -3,7 +3,8 @@
 #include <math.h>
 #include <QDebug>
 
-GraphWidgetPluginInstance::GraphWidgetPluginInstance() :
+GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name) :
+  WidgetPluginInstance(widgetPlugin, name),
   m_widget(NULL),
   m_timePerSample(0.001)
 {
@@ -27,6 +28,19 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
 
   disconnect(this, SIGNAL(dataAdded()), m_widget, SLOT(repaint()));
   delete m_widget;
+}
+
+void GraphWidgetPluginInstance::save(QTextStream& out) {
+  out << QString("!%1.set timePerSample,%2\n").arg(getName()).arg(m_timePerSample);
+
+  foreach(GraphSignal* signal, m_signals) {
+    out << QString("!%1.addSignal %2,%3,%4,%5\n").arg(getName()).arg(signal->name).arg(signal->bits).arg(signal->scaleMin).arg(signal->scaleMax);
+  }
+
+  out << QString("!%1.beginData %2\n").arg(getName()).arg(m_bufferAvailable);
+  out.flush();
+  out.device()->write((const char*)m_buffer, m_bufferAvailable);
+  out << "\n";
 }
 
 void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args) {

@@ -7,6 +7,6 @@ GraphPlugin::GraphPlugin()
 {
 }
 
-WidgetPluginInstance* GraphPlugin::createInstance() const {
-  return new GraphWidgetPluginInstance();
+WidgetPluginInstance* GraphPlugin::createInstance(const QString& name) const {
+  return new GraphWidgetPluginInstance((WidgetPlugin*)this, name);
 }

@@ -3,6 +3,9 @@
 #include "plugins/graph/GraphWidget.h"
 #include <QDebug>
 #include <QSettings>
+#include <QFileDialog>
+#include <QFile>
+#include <QErrorMessage>
 
 #define SETTINGS_PREFIX       "MainWindow/"
 #define INPUT_PLUGIN_SETTING  SETTINGS_PREFIX "InputPlugin"
@@ -169,7 +172,7 @@ void MainWindow::runAddCommand(const QString& type, const QString& name, int row
     qWarning() << "Invalid type" << type << "for add.";
     return;
   }
-  WidgetPluginInstance* widgetPluginInstance = widgetPlugin->createInstance();
+  WidgetPluginInstance* widgetPluginInstance = widgetPlugin->createInstance(name);
   m_widgets.insert(name, widgetPluginInstance);
   emit addWidgetPluginInstance(widgetPluginInstance, row, column, rowSpan, columnSpan);
 }
@@ -177,5 +180,57 @@ void MainWindow::runAddCommand(const QString& type, const QString& name, int row
 void MainWindow::onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan) {
   QWidget* widget = widgetPluginInstance->getWidget();
   m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
+}
+
+
+void MainWindow::on_actionSave_triggered() {
+  QString fileName = QFileDialog::getSaveFileName(this, "Save...", QString(), "EEWorkbench (*.eew);;All Files (*.*)");
+  if(fileName.length() > 0) {
+    save(fileName);
+  }
+}
+
+void MainWindow::save(const QString& fileName) {
+  QFile file(fileName);
+  if(!file.open(QIODevice::WriteOnly)) {
+    QErrorMessage error(this);
+    error.showMessage("Could not open file for write");
+    return;
+  }
+
+  save(file);
+
+  file.close();
+}
+
+void MainWindow::save(QFile& file) {
+  QTextStream out(&file);
+  foreach (WidgetPluginInstance* widgetPluginInstance, m_widgets.values()) {
+    int row = 0;
+    int column = 0;
+    int rowSpan = 1;
+    int columnSpan = 1;
+    int widgetIndex = findWidgetPluginInstance(widgetPluginInstance);
+    if(widgetIndex < 0) {
+      qDebug() << "Could not find widget";
+    } else {
+      m_layout->getItemPosition(widgetIndex, &row, &column, &rowSpan, &columnSpan);
+    }
+
+    QString type = widgetPluginInstance->getWidgetPlugin()->getName();
+    QString name = widgetPluginInstance->getName();
+    out << QString("!add %1,%2,%3,%4,%5,%6\n").arg(type).arg(name).arg(row).arg(column).arg(rowSpan).arg(columnSpan);
+    widgetPluginInstance->save(out);
+  }
+}
+
+int MainWindow::findWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance) {
+  for(int i = 0; i < m_layout->count(); i++) {
+    QLayoutItem* layoutItem = m_layout->itemAt(i);
+    if(layoutItem->widget() == widgetPluginInstance->getWidget()) {
+      return i;
+    }
+  }
+  return -1;
 }
 

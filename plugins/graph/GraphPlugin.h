@@ -11,7 +11,7 @@ public:
   GraphPlugin();
 
   virtual QString getName() const { return "graph"; }
-  virtual WidgetPluginInstance* createInstance() const;
+  virtual WidgetPluginInstance* createInstance(const QString& name) const;  
 };
 
 #endif // GRAPHPLUGIN_H

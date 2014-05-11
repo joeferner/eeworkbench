@@ -21,7 +21,7 @@ class GraphWidgetPluginInstance : public WidgetPluginInstance
   Q_OBJECT
 
 public:
-  GraphWidgetPluginInstance();
+  GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name);
   virtual ~GraphWidgetPluginInstance();
 
   typedef bool(*sampleCompareFn)(double originalValue, double d1, double d2);
@@ -32,6 +32,7 @@ public:
 
   virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
   virtual QWidget* getWidget();
+  virtual void save(QTextStream& out);
   void addSignal(const QString& name, int bits, double scaleMin, double scaleMax);
   void addData(QStringList args);
   void beginData(InputReaderThread* inputReaderThread, int numberOfBytes);
