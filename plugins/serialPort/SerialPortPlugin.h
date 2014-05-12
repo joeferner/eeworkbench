@@ -4,6 +4,7 @@
 #include "../InputPlugin.h"
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QReadWriteLock>
 
 class SerialPortConnectThread;
 
@@ -29,6 +30,7 @@ protected:
   friend class SerialPortConnectThread;
 
 private:
+  QReadWriteLock m_serialPortLock;
   QSerialPort* m_serialPort;
   SerialPortConnectThread* m_connectThread;
 };

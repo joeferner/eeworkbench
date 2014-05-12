@@ -3,6 +3,7 @@
 #include <QSettings>
 #include <QDebug>
 #include <QThread>
+#include <QReadLocker>
 
 #define SETTINGS_PREFIX    "SerialPortPlugin/"
 #define PORT_NAME_SETTING  SETTINGS_PREFIX "PortName"
@@ -68,6 +69,7 @@ void SerialPortPlugin::connect() {
 }
 
 bool SerialPortPlugin::sendConnectCommand() {
+  QReadLocker lock(&m_serialPortLock);
   if(m_serialPort->write("\n", 1) != 1) {
     qDebug() << "Could not send new line";
     return false;
@@ -143,7 +145,10 @@ bool SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
   qDebug() << "Flow control:" << serialPort->flowControl();
   qDebug() << "Read buffer size:" << serialPort->readBufferSize();
 
-  m_serialPort = serialPort;
+  {
+    QWriteLocker lock(&m_serialPortLock);
+    m_serialPort = serialPort;
+  }
   return true;
 
 openFail:
@@ -152,6 +157,7 @@ openFail:
 }
 
 void SerialPortPlugin::closeSerialPort() {
+  QWriteLocker lock(&m_serialPortLock);
   if(m_serialPort == NULL) {
     return;
   }
@@ -167,6 +173,7 @@ void SerialPortPlugin::closeSerialPort() {
 }
 
 bool SerialPortPlugin::readByte(uchar* ch) {
+  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return false;
   }
@@ -178,6 +185,7 @@ bool SerialPortPlugin::readByte(uchar* ch) {
 }
 
 qint64 SerialPortPlugin::read(unsigned char* buffer, qint64 bytesToRead) {
+  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return 0;
   }
@@ -189,6 +197,7 @@ qint64 SerialPortPlugin::read(unsigned char* buffer, qint64 bytesToRead) {
 }
 
 qint64 SerialPortPlugin::available() {
+  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return 0;
   }
