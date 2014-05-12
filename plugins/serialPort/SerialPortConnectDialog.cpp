@@ -15,7 +15,7 @@ SerialPortConnectDialog::~SerialPortConnectDialog() {
 
 void SerialPortConnectDialog::refreshPortNameList() {
   ui->portName->clear();
-  foreach (const QSerialPortInfo & info, QSerialPortInfo::availablePorts()) {
+  foreach(const QSerialPortInfo & info, QSerialPortInfo::availablePorts()) {
     if(info.manufacturer().length() > 0) {
       QString description = " (" + info.description() + "/" + info.manufacturer() + ")";
       QString text = info.portName() + description;

@@ -9,4 +9,5 @@ astyle \
   --align-pointer=type \
   --align-reference=type \
   --pad-oper \
+  --unpad-paren \
   --recursive '*.cpp' '*.h'

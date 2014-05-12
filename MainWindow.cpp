@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget* parent) :
   statusBar()->addWidget(m_descriptionLabel);
 
   m_inputSelectComboBox = new QComboBox(m_ui->mainToolBar);
-  foreach (InputPlugin * inputPlugin, m_pluginManager.getInputPlugins()) {
+  foreach(InputPlugin * inputPlugin, m_pluginManager.getInputPlugins()) {
     m_inputSelectComboBox->addItem(inputPlugin->getName(), QVariant::fromValue(inputPlugin));
   }
   m_ui->mainToolBar->insertWidget(m_ui->actionConnect, m_inputSelectComboBox);
@@ -203,7 +203,7 @@ void MainWindow::save(const QString& fileName) {
 
 void MainWindow::save(QFile& file) {
   QTextStream out(&file);
-  foreach (WidgetPluginInstance * widgetPluginInstance, m_widgets.values()) {
+  foreach(WidgetPluginInstance * widgetPluginInstance, m_widgets.values()) {
     int row = 0;
     int column = 0;
     int rowSpan = 1;
