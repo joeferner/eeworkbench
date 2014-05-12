@@ -7,8 +7,7 @@
 
 class SerialPortConnectThread;
 
-class SerialPortPlugin : public InputPlugin
-{
+class SerialPortPlugin : public InputPlugin {
   Q_OBJECT
 
 public:

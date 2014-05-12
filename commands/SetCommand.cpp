@@ -1,5 +1,4 @@
 #include "SetCommand.h"
 
-SetCommand::SetCommand()
-{
+SetCommand::SetCommand() {
 }

@@ -5,8 +5,7 @@
 #include "WidgetPlugin.h"
 #include <QList>
 
-class PluginManager
-{
+class PluginManager {
 public:
   PluginManager();
 

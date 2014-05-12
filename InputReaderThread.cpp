@@ -4,11 +4,10 @@
 
 InputReaderThread::InputReaderThread(InputReaderThreadTarget* inputReaderThreadTarget, InputPlugin* inputPlugin) :
   m_run(true),
+  m_stopped(true),
   m_inputReaderThreadTarget(inputReaderThreadTarget),
   m_inputPlugin(inputPlugin),
-  m_ringBuffer(BUFFER_SIZE),
-  m_stopped(true)
-{
+  m_ringBuffer(BUFFER_SIZE) {
 }
 
 void InputReaderThread::run() {

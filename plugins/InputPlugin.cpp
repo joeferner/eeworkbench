@@ -2,8 +2,7 @@
 #include <QThread>
 #include <QDebug>
 
-InputPlugin::InputPlugin()
-{
+InputPlugin::InputPlugin() {
 }
 
 QString InputPlugin::readLine(int timeout) {

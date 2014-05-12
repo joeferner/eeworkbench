@@ -7,8 +7,7 @@
 
 class GraphWidgetPluginInstance;
 
-class GraphWidget : public QAbstractScrollArea
-{
+class GraphWidget : public QAbstractScrollArea {
   Q_OBJECT
 public:
   explicit GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance);

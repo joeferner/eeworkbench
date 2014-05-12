@@ -3,8 +3,7 @@
 RingBuffer::RingBuffer(uint size) :
   m_bufferSize(size),
   m_writeIndex(0),
-  m_readIndex(-1)
-{
+  m_readIndex(-1) {
   m_buffer = new uchar[size];
 }
 

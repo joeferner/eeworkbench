@@ -12,8 +12,7 @@ public:
   virtual void onInputReaderThreadMessage(InputReaderThread* inputReaderThread, const QString& line) = 0;
 };
 
-class InputReaderThread : public QThread
-{
+class InputReaderThread : public QThread {
   Q_OBJECT
 
 public:

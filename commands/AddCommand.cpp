@@ -1,5 +1,4 @@
 #include "AddCommand.h"
 
-AddCommand::AddCommand()
-{
+AddCommand::AddCommand() {
 }

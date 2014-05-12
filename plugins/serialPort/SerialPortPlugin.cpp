@@ -23,7 +23,7 @@ public:
     if(m_serialPortPlugin->openSerialPort(m_portName, m_baudRate)) {
       int retryCount = 3;
       bool connectSuccess = false;
-      for(int i=0; i<retryCount; i++) {
+      for(int i = 0; i < retryCount; i++) {
         connectSuccess = m_serialPortPlugin->sendConnectCommand();
         if(connectSuccess) {
           break;
@@ -42,8 +42,7 @@ private:
 };
 
 SerialPortPlugin::SerialPortPlugin() :
-  m_serialPort(NULL)
-{
+  m_serialPort(NULL) {
   m_connectThread = new SerialPortConnectThread(this);
 }
 
@@ -54,7 +53,7 @@ void SerialPortPlugin::connect() {
   SerialPortConnectDialog dlg;
   dlg.setPortName(settings.value(PORT_NAME_SETTING, "").toString());
   dlg.setBaudRate(settings.value(BAUD_RATE_SETTING, 115200).toInt());
-  if(dlg.exec() == QDialog::Accepted){
+  if(dlg.exec() == QDialog::Accepted) {
     QString portName = dlg.getPortName();
     int baudRate = dlg.getBaudRate();
 

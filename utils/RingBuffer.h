@@ -4,8 +4,7 @@
 #include <QtGlobal>
 #include <QString>
 
-class RingBuffer
-{
+class RingBuffer {
 public:
   RingBuffer(uint size);
   virtual ~RingBuffer();

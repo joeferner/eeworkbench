@@ -1,9 +1,8 @@
 #include "CommandRunner.h"
 #include <QDebug>
 
-CommandRunner::CommandRunner(CommandRunnerWindow *window) :
-  m_window(window)
-{
+CommandRunner::CommandRunner(CommandRunnerWindow* window) :
+  m_window(window) {
 }
 
 void CommandRunner::onInputReaderThreadMessage(InputReaderThread* inputReaderThread, const QString& line) {
@@ -53,12 +52,12 @@ QStringList CommandRunner::splitArgs(const QString& argsString) {
 
   QString arg = "";
   QChar startCh;
-  for(int i=0; i<argsString.length(); i++) {
+  for(int i = 0; i < argsString.length(); i++) {
     QChar ch = argsString.at(i);
     if(ch == '"' || ch == '\'') {
       startCh = ch;
       i++;
-      for(; i<argsString.length(); i++) {
+      for(; i < argsString.length(); i++) {
         ch = argsString.at(i);
         if(ch == startCh) {
           i++;

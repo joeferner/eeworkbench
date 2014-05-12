@@ -1,23 +1,21 @@
 #include "SerialPortConnectDialog.h"
 #include "ui_SerialPortConnectDialog.h"
 
-SerialPortConnectDialog::SerialPortConnectDialog(QWidget *parent) :
+SerialPortConnectDialog::SerialPortConnectDialog(QWidget* parent) :
   QDialog(parent),
-  ui(new Ui::SerialPortConnectDialog)
-{
+  ui(new Ui::SerialPortConnectDialog) {
   ui->setupUi(this);
 
   refreshPortNameList();
 }
 
-SerialPortConnectDialog::~SerialPortConnectDialog()
-{
+SerialPortConnectDialog::~SerialPortConnectDialog() {
   delete ui;
 }
 
 void SerialPortConnectDialog::refreshPortNameList() {
   ui->portName->clear();
-  foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
+  foreach (const QSerialPortInfo & info, QSerialPortInfo::availablePorts()) {
     if(info.manufacturer().length() > 0) {
       QString description = " (" + info.description() + "/" + info.manufacturer() + ")";
       QString text = info.portName() + description;

@@ -6,8 +6,7 @@
 GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name) :
   WidgetPluginInstance(widgetPlugin, name),
   m_widget(NULL),
-  m_timePerSample(0.001)
-{
+  m_timePerSample(0.001) {
   m_bufferSize = 10 * 1024 * 1024;
   m_buffer = new unsigned char[m_bufferSize];
   m_bufferWritePos = 0;
@@ -22,7 +21,7 @@ GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin,
 
 GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
   delete m_colors;
-  foreach(GraphSignal* signal, m_signals) {
+  foreach(GraphSignal * signal, m_signals) {
     delete signal;
   }
 
@@ -33,7 +32,7 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
 void GraphWidgetPluginInstance::save(QTextStream& out) {
   out << QString("!%1.set timePerSample,%2\n").arg(getName()).arg(m_timePerSample);
 
-  foreach(GraphSignal* signal, m_signals) {
+  foreach(GraphSignal * signal, m_signals) {
     out << QString("!%1.addSignal %2,%3,%4,%5\n").arg(getName()).arg(signal->name).arg(signal->bits).arg(signal->scaleMin).arg(signal->scaleMax);
   }
 
@@ -93,7 +92,7 @@ void GraphWidgetPluginInstance::beginData(InputReaderThread* inputReaderThread, 
 void GraphWidgetPluginInstance::addData(QStringList args) {
   unsigned char temp = 0;
   int tempBit = 0;
-  for(int i=0; i < qMin(args.length(), m_signals.length()); i++) {
+  for(int i = 0; i < qMin(args.length(), m_signals.length()); i++) {
     uint arg = args.at(i).toUInt();
     GraphSignal* signal = m_signals.at(i);
     int signalBitsShift = signal->bits - 1;
@@ -155,7 +154,7 @@ QWidget* GraphWidgetPluginInstance::getWidget() {
 
 int GraphWidgetPluginInstance::getBytesPerSample() const {
   int bits = 0;
-  foreach(GraphSignal* signal, m_signals) {
+  foreach(GraphSignal * signal, m_signals) {
     bits += signal->bits;
   }
   return ceil((float)bits / 8.0);
@@ -179,7 +178,7 @@ double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
   for(int s = 0; s <= signalNumber; s++) {
     signal = getSignal(s);
     temp = 0;
-    for(int signalBit=0; signalBit < signal->bits; signalBit++) {
+    for(int signalBit = 0; signalBit < signal->bits; signalBit++) {
       temp = (temp << 1) | (bufferTemp & 0x80 ? 0x01 : 0x00);
       bufferTemp = bufferTemp << 1;
       bufferTempBit++;
@@ -206,7 +205,7 @@ int GraphWidgetPluginInstance::findSample(int startingSample, int signalNumber, 
   int count;
   int sample;
   double previousValue = startingValue;
-  for(count=0, sample = startingSample + direction; count < m_bufferAvailable; count++, sample += direction) {
+  for(count = 0, sample = startingSample + direction; count < m_bufferAvailable; count++, sample += direction) {
     double newValue = getValue(sample, signalNumber);
     if(fn(startingValue, previousValue, newValue)) {
       if(direction < 0) {

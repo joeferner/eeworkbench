@@ -2,20 +2,17 @@
 #include "FileInputConnectDialog.h"
 #include "ui_FileInputConnectDialog.h"
 
-FileInputConnectDialog::FileInputConnectDialog(QWidget *parent) :
+FileInputConnectDialog::FileInputConnectDialog(QWidget* parent) :
   QDialog(parent),
-  ui(new Ui::FileInputConnectDialog)
-{
+  ui(new Ui::FileInputConnectDialog) {
   ui->setupUi(this);
 }
 
-FileInputConnectDialog::~FileInputConnectDialog()
-{
+FileInputConnectDialog::~FileInputConnectDialog() {
   delete ui;
 }
 
-void FileInputConnectDialog::on_fileNameBrowse_clicked()
-{
+void FileInputConnectDialog::on_fileNameBrowse_clicked() {
   QString fileName = QFileDialog::getOpenFileName(this, "Open", QString(), "EEWorkbench (*.eew);;All Files (*.*)");
   ui->fileName->setText(fileName);
 }

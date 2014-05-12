@@ -9,8 +9,7 @@ double UnitsUtil::KILO = 1e3f;
 double UnitsUtil::MEGA = 1e6f;
 double UnitsUtil::GIGA = 1e9f;
 
-UnitsUtil::UnitsUtil()
-{
+UnitsUtil::UnitsUtil() {
 }
 
 QString UnitsUtil::toString(double f, const QString& unit) {

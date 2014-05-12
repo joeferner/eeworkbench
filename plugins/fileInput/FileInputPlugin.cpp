@@ -7,8 +7,7 @@
 #define FILE_NAME_SETTING  SETTINGS_PREFIX "FileName"
 
 FileInputPlugin::FileInputPlugin() :
-  m_file(NULL)
-{
+  m_file(NULL) {
 }
 
 void FileInputPlugin::connect() {
@@ -17,7 +16,7 @@ void FileInputPlugin::connect() {
   QSettings settings;
   FileInputConnectDialog dlg;
   dlg.setFileName(settings.value(FILE_NAME_SETTING, "").toString());
-  if(dlg.exec() == QDialog::Accepted){
+  if(dlg.exec() == QDialog::Accepted) {
     QString fileName = dlg.getFileName();
 
     settings.setValue(FILE_NAME_SETTING, fileName);
@@ -34,7 +33,7 @@ bool FileInputPlugin::isConnected() {
   return m_file != NULL;
 }
 
-void FileInputPlugin::openFile(const QString &fileName) {
+void FileInputPlugin::openFile(const QString& fileName) {
   QFile* file = new QFile(fileName);
   if(!file->exists()) {
     delete file;

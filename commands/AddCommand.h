@@ -3,8 +3,7 @@
 
 #include "CommandBase.h"
 
-class AddCommand : public CommandBase
-{
+class AddCommand : public CommandBase {
 public:
   AddCommand();
 };

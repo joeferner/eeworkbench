@@ -9,12 +9,11 @@ namespace Ui {
 class SerialPortConnectDialog;
 }
 
-class SerialPortConnectDialog : public QDialog
-{
+class SerialPortConnectDialog : public QDialog {
   Q_OBJECT
 
 public:
-  explicit SerialPortConnectDialog(QWidget *parent = 0);
+  explicit SerialPortConnectDialog(QWidget* parent = 0);
   ~SerialPortConnectDialog();
 
   void refreshPortNameList();
@@ -26,7 +25,7 @@ public:
   int getBaudRate() const;
 
 private:
-  Ui::SerialPortConnectDialog *ui;
+  Ui::SerialPortConnectDialog* ui;
 };
 
 #endif // SERIALPORTCONNECTDIALOG_H

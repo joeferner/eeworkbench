@@ -8,8 +8,7 @@
 
 class WidgetPlugin;
 
-class WidgetPluginInstance : public QObject
-{
+class WidgetPluginInstance : public QObject {
   Q_OBJECT
 
 public:

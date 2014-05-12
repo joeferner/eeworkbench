@@ -3,8 +3,7 @@
 #include "GraphWidgetPluginInstance.h"
 #include <QDebug>
 
-GraphPlugin::GraphPlugin()
-{
+GraphPlugin::GraphPlugin() {
 }
 
 WidgetPluginInstance* GraphPlugin::createInstance(const QString& name) const {

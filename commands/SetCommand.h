@@ -1,8 +1,7 @@
 #ifndef SETCOMMAND_H
 #define SETCOMMAND_H
 
-class SetCommand
-{
+class SetCommand {
 public:
   SetCommand();
 };

@@ -3,8 +3,7 @@
 
 #include "Plugin.h"
 
-class InputPlugin : public Plugin
-{
+class InputPlugin : public Plugin {
   Q_OBJECT
 
 public:

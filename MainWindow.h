@@ -18,19 +18,18 @@ class MainWindow;
 }
 
 class MainWindow :
-    public QMainWindow,
-    public CommandRunnerWindow
-{
+  public QMainWindow,
+  public CommandRunnerWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget* parent = 0);
   ~MainWindow();
 
   virtual void runCommand(InputReaderThread* inputReaderThread, const QString& scope, const QString& functionName, QStringList args);
 
 protected:
-  virtual void closeEvent(QCloseEvent *event);
+  virtual void closeEvent(QCloseEvent* event);
 
 signals:
   void addWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan);

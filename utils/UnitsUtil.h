@@ -3,8 +3,7 @@
 
 #include <QString>
 
-class UnitsUtil
-{
+class UnitsUtil {
 private:
   UnitsUtil();
 

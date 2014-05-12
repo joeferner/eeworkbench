@@ -16,8 +16,7 @@ struct GraphSignal {
   QColor color;
 };
 
-class GraphWidgetPluginInstance : public WidgetPluginInstance
-{
+class GraphWidgetPluginInstance : public WidgetPluginInstance {
   Q_OBJECT
 
 public:

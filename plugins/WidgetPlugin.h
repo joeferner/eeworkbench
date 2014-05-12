@@ -4,8 +4,7 @@
 #include "Plugin.h"
 #include "WidgetPluginInstance.h"
 
-class WidgetPlugin : public Plugin
-{
+class WidgetPlugin : public Plugin {
 public:
   WidgetPlugin();
 

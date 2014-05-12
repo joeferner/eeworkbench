@@ -1,5 +1,4 @@
 #include "WidgetPlugin.h"
 
-WidgetPlugin::WidgetPlugin()
-{
+WidgetPlugin::WidgetPlugin() {
 }

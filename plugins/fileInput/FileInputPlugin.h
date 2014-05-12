@@ -4,8 +4,7 @@
 #include "../InputPlugin.h"
 #include <QFile>
 
-class FileInputPlugin : public InputPlugin
-{
+class FileInputPlugin : public InputPlugin {
   Q_OBJECT
 
 public:
@@ -21,9 +20,9 @@ public:
 
 private:
   void closeFile();
-  void openFile(const QString &fileName);
+  void openFile(const QString& fileName);
 
-  QFile *m_file;
+  QFile* m_file;
 };
 
 #endif // FILEINPUTPLUGIN_H

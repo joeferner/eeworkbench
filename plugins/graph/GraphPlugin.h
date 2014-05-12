@@ -3,15 +3,14 @@
 
 #include "../WidgetPlugin.h"
 
-class GraphPlugin : public WidgetPlugin
-{
+class GraphPlugin : public WidgetPlugin {
   Q_OBJECT
 
 public:
   GraphPlugin();
 
   virtual QString getName() const { return "graph"; }
-  virtual WidgetPluginInstance* createInstance(const QString& name) const;  
+  virtual WidgetPluginInstance* createInstance(const QString& name) const;
 };
 
 #endif // GRAPHPLUGIN_H
