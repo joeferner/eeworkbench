@@ -9,8 +9,7 @@ GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin,
   m_timePerSample(0.001) {
   m_bufferSize = 10 * 1024 * 1024;
   m_buffer = new unsigned char[m_bufferSize];
-  m_bufferWritePos = 0;
-  m_bufferAvailable = 0;
+  clear();
 
   m_colorsCount = 3;
   m_colors = new QColor[m_colorsCount];
@@ -24,9 +23,18 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
   foreach(GraphSignal * signal, m_signals) {
     delete signal;
   }
+  m_signals.clear();
 
   disconnect(this, SIGNAL(dataAdded()), m_widget, SLOT(repaint()));
   delete m_widget;
+}
+
+void GraphWidgetPluginInstance::clear() {
+  m_bufferWritePos = 0;
+  m_bufferAvailable = 0;
+  if(m_widget != NULL) {
+    m_widget->update();
+  }
 }
 
 void GraphWidgetPluginInstance::save(QTextStream& out) {
@@ -54,6 +62,12 @@ void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread,
       set(args.at(0), args.at(1));
     } else {
       qWarning() << "Graph: set: Invalid number of arguments. Expected 2, found " << args.length();
+    }
+  } else if(functionName == "clear") {
+    if(args.length() == 0) {
+      clear();
+    } else {
+      qWarning() << "Graph: clear: Invalid number of arguments. Expected 0, found " << args.length();
     }
   } else if(functionName == "data") {
     if(args.length() == m_signals.length()) {
@@ -161,7 +175,11 @@ int GraphWidgetPluginInstance::getBytesPerSample() const {
 }
 
 double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
-  int totalNumberOfSamples = m_bufferSize / getBytesPerSample();
+  int bytesPerSample = getBytesPerSample();
+  if(bytesPerSample == 0) {
+    return 0.0;
+  }
+  int totalNumberOfSamples = m_bufferSize / bytesPerSample;
   while(sample < 0) {
     sample += totalNumberOfSamples;
   }
@@ -169,7 +187,7 @@ double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
     sample -= totalNumberOfSamples;
   }
 
-  int bufferIndex = getBytesPerSample() * sample;
+  int bufferIndex = bytesPerSample * sample;
   unsigned char bufferTemp = getBuffer()[bufferIndex];
   int bufferTempBit = 0;
 

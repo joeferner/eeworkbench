@@ -60,7 +60,6 @@ QStringList CommandRunner::splitArgs(const QString& argsString) {
       for(; i < argsString.length(); i++) {
         ch = argsString.at(i);
         if(ch == startCh) {
-          i++;
           break;
         }
         arg.append(ch);
@@ -72,7 +71,10 @@ QStringList CommandRunner::splitArgs(const QString& argsString) {
       arg.append(ch);
     }
   }
-  results.append(arg.trimmed());
+  arg = arg.trimmed();
+  if(arg.length() > 0) {
+    results.append(arg);
+  }
 
   return results;
 }

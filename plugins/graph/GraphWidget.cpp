@@ -201,7 +201,9 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
 
   if(m_lastMouseSignal != -1) {
     const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(m_lastMouseSignal);
-    channel = signal->name;
+    if(signal != NULL) {
+      channel = signal->name;
+    }
   }
 
   if(m_lastMouseSample != -1) {

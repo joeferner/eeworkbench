@@ -37,7 +37,7 @@ public:
   void beginData(InputReaderThread* inputReaderThread, int numberOfBytes);
 
   int getSignalCount() const { return m_signals.length(); }
-  const GraphSignal* getSignal(int i) const { return m_signals.at(i); }
+  const GraphSignal* getSignal(int i) const { if(i < m_signals.length()) { return m_signals.at(i); } }
   const unsigned char* getBuffer() const { return m_buffer; }
   int getBufferSize() const { return m_bufferSize; }
   int getBufferWritePos() const { return m_bufferWritePos; }
@@ -46,6 +46,7 @@ public:
   int getBytesPerSample() const;
   double getValue(int sample, int signal);
   int findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn);
+  void clear();
 
 private:
   GraphWidget* m_widget;
