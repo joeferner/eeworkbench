@@ -109,7 +109,8 @@ bool SerialPortPlugin::isConnected() {
 }
 
 bool SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
-  QSerialPort* serialPort = new QSerialPort("/dev/ttyUSB0");//portName);
+  QSerialPort* serialPort = new QSerialPort(portName);
+  QObject::connect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   serialPort->setReadBufferSize(10 * 1024);
   if(!serialPort->open(QIODevice::ReadWrite)) {
     qDebug() << "Could not open serial port";
@@ -152,8 +153,13 @@ bool SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
   return true;
 
 openFail:
+  QObject::disconnect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   delete serialPort;
   return false;
+}
+
+void SerialPortPlugin::onReadyRead() {
+  emit readyRead();
 }
 
 void SerialPortPlugin::closeSerialPort() {
@@ -167,6 +173,7 @@ void SerialPortPlugin::closeSerialPort() {
     qDebug() << "waiting for serial port to close";
     QThread::msleep(100);
   }
+  QObject::disconnect(m_serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   delete m_serialPort;
   m_serialPort = NULL;
   qDebug() << "serial port closed";

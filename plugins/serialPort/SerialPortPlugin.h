@@ -22,6 +22,9 @@ public:
   virtual qint64 available();
   virtual QString getName() const { return "Serial Port"; }
 
+private slots:
+  void onReadyRead();
+
 protected:
   bool openSerialPort(const QString& portName, int baudRate);
   void closeSerialPort();

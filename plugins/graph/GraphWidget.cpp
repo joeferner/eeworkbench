@@ -57,6 +57,9 @@ void GraphWidget::mouseMoveEvent(QMouseEvent* event) {
 void GraphWidget::wheelEvent(QWheelEvent* event) {
   if(event->modifiers() & Qt::ControlModifier) {
     m_pixelsPerSample += event->delta() / 120.0;
+    if(m_pixelsPerSample < 1) {
+      m_pixelsPerSample = 1;
+    }
   } else {
     int v = horizontalScrollBar()->value() - (event->delta() / 5.0);
     horizontalScrollBar()->setValue(v);
