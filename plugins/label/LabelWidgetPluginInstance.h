@@ -10,7 +10,7 @@ class LabelWidgetPluginInstance : public WidgetPluginInstance {
 public:
   LabelWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name);
 
-  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
+  virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin);
   virtual QWidget* getWidget() { return m_widget; }
   virtual void save(QTextStream& out);
 

@@ -13,8 +13,6 @@
 MainWindow::MainWindow(QWidget* parent) :
   QMainWindow(parent),
   m_ui(new Ui::MainWindow),
-  m_inputReaderThread(NULL),
-  m_commandRunner(this),
   m_connectedInputPlugin(NULL) {
   m_ui->setupUi(this);
 
@@ -35,8 +33,6 @@ MainWindow::MainWindow(QWidget* parent) :
   if(selectedInputPlugin.length() > 0) {
     m_inputSelectComboBox->setCurrentText(selectedInputPlugin);
   }
-
-  connect(this, SIGNAL(addWidgetPluginInstance(WidgetPluginInstance*, int, int, int, int)), this, SLOT(onAddWidgetPluginInstance(WidgetPluginInstance*, int, int, int, int)));
 }
 
 MainWindow::~MainWindow() {
@@ -56,12 +52,12 @@ void MainWindow::on_actionConnect_triggered() {
     m_connectedInputPlugin = m_inputSelectComboBox->currentData().value<InputPlugin*>();
     QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
     QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    QObject::connect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
 
     if(m_connectedInputPlugin == NULL) {
       qDebug() << "Could not get selected plugin";
       return;
     }
-    stopInputReaderThread();
     clearWidgets();
     m_connectedInputPlugin->connect();
 
@@ -74,18 +70,17 @@ void MainWindow::on_actionConnect_triggered() {
 void MainWindow::onInputPluginConnected() {
   m_ui->actionConnect->setText("Disconnect");
   m_ui->actionConnect->setEnabled(true);
-  m_inputReaderThread = new InputReaderThread(&m_commandRunner, m_connectedInputPlugin);
-  m_inputReaderThread->start();
+  onInputPluginReadyRead();
 }
 
 void MainWindow::onInputPluginDisconnected() {
   m_ui->actionConnect->setText("Connect");
   m_ui->actionConnect->setEnabled(true);
-  stopInputReaderThread();
 
   if(m_connectedInputPlugin != NULL) {
     QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
     QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
     m_connectedInputPlugin = NULL;
   }
 }
@@ -112,29 +107,112 @@ void MainWindow::clearWidgets() {
   }
 }
 
-void MainWindow::stopInputReaderThread() {
-  if(m_inputReaderThread == NULL) {
+void MainWindow::onInputPluginReadyRead() {
+  while(m_connectedInputPlugin->available() > 0) {
+    uchar ch;
+    if(!m_connectedInputPlugin->readByte(&ch)) {
+      break;
+    }
+
+    if(ch == '\r') {
+
+    } else if(ch == '\n') {
+      run(m_inputCurrentLine);
+      m_inputCurrentLine = "";
+    } else {
+      m_inputCurrentLine += ch;
+    }
+  }
+}
+
+void MainWindow::run(const QString& line) {
+  if(line.length() == 0) {
     return;
   }
-  m_inputReaderThread->stop();
-  delete m_inputReaderThread;
-  m_inputReaderThread = NULL;
-}
 
-void MainWindow::runCommand(InputReaderThread* inputReaderThread, const QString& scope, const QString& functionName, QStringList args) {
-  if(scope == "window") {
-    runCommand(functionName, args);
+  QChar type = line.at(0);
+  if(type == '?') {
+    qDebug() << line.mid(1);
+  } else if(type == '!') {
+    runCommand(line.mid(1).trimmed());
   } else {
-    WidgetPluginInstance* widgetPluginInstance = m_widgets.value(scope);
-    if(widgetPluginInstance == NULL) {
-      qWarning() << "Could not find scope" << scope;
-      return;
-    }
-    widgetPluginInstance->runCommand(inputReaderThread, functionName, args);
+    qDebug() << "MainWindow: Unknown line type:" << line;
   }
 }
 
-void MainWindow::runCommand(const QString& functionName, QStringList args) {
+void MainWindow::runCommand(const QString& command) {
+  int scopeAndFunctionNameIndex = command.indexOf(' ');
+  if(scopeAndFunctionNameIndex < 0) {
+    scopeAndFunctionNameIndex = command.length();
+  }
+  QString scopeAndFunctionName = command.left(scopeAndFunctionNameIndex);
+  QString args = command.mid(scopeAndFunctionNameIndex + 1);
+
+  int scopeIndex = scopeAndFunctionName.indexOf('.');
+  if(scopeIndex < 0) {
+    scopeIndex = -1;
+  }
+  QString scope = scopeAndFunctionName.left(qMax(0, scopeIndex));
+  if(scope == "") {
+    scope = "window";
+  }
+  QString functionName = scopeAndFunctionName.mid(scopeIndex + 1);
+
+  QStringList argsList = splitArgs(args);
+
+  runCommand(scope, functionName, argsList);
+}
+
+QStringList MainWindow::splitArgs(const QString& argsString) {
+  QStringList results;
+
+  QString arg = "";
+  QChar startCh;
+  for(int i = 0; i < argsString.length(); i++) {
+    QChar ch = argsString.at(i);
+    if(ch == '"' || ch == '\'') {
+      startCh = ch;
+      i++;
+      for(; i < argsString.length(); i++) {
+        ch = argsString.at(i);
+        if(ch == startCh) {
+          break;
+        }
+        arg.append(ch);
+      }
+    } else if(ch == ',') {
+      results.append(arg.trimmed());
+      arg.clear();
+    } else {
+      arg.append(ch);
+    }
+  }
+  arg = arg.trimmed();
+  if(arg.length() > 0) {
+    results.append(arg);
+  }
+
+  return results;
+}
+
+void MainWindow::runCommand(const QString& scope, const QString& functionName, QStringList args) {
+  if(scope == "window") {
+    windowCommand(functionName, args);
+  } else {
+    widgetCommand(scope, functionName, args);
+  }
+}
+
+void MainWindow::widgetCommand(const QString& scope, const QString& functionName, QStringList args) {
+  WidgetPluginInstance* widgetPluginInstance = m_widgets.value(scope);
+  if(widgetPluginInstance == NULL) {
+    qWarning() << "Could not find scope" << scope;
+    return;
+  }
+  widgetPluginInstance->runCommand(functionName, args, m_connectedInputPlugin);
+}
+
+void MainWindow::windowCommand(const QString& functionName, QStringList args) {
   if(functionName == "clear") {
     clearWidgets();
   } else if(functionName == "set") {
@@ -172,14 +250,10 @@ void MainWindow::runAddCommand(const QString& type, const QString& name, int row
   }
   WidgetPluginInstance* widgetPluginInstance = widgetPlugin->createInstance(name);
   m_widgets.insert(name, widgetPluginInstance);
-  emit addWidgetPluginInstance(widgetPluginInstance, row, column, rowSpan, columnSpan);
-}
 
-void MainWindow::onAddWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance, int row, int column, int rowSpan, int columnSpan) {
   QWidget* widget = widgetPluginInstance->getWidget();
   m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
 }
-
 
 void MainWindow::on_actionSave_triggered() {
   QString fileName = QFileDialog::getSaveFileName(this, "Save...", QString(), "EEWorkbench (*.eew);;All Files (*.*)");

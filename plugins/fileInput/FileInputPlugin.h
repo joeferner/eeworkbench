@@ -18,9 +18,12 @@ public:
   virtual qint64 available();
   virtual QString getName() const { return "File"; }
 
+private slots:
+  void onReadyRead();
+
 private:
   void closeFile();
-  void openFile(const QString& fileName);
+  QFile* openFile(const QString& fileName);
 
   QFile* m_file;
 };

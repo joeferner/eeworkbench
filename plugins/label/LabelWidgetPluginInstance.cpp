@@ -6,7 +6,7 @@ LabelWidgetPluginInstance::LabelWidgetPluginInstance(WidgetPlugin* widgetPlugin,
   m_widget = new LabelWidget(this);
 }
 
-void LabelWidgetPluginInstance::runCommand(InputReaderThread*, const QString& functionName, QStringList args) {
+void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin*) {
   if(functionName == "set") {
     if(args.length() == 2) {
       set(args.at(0), args.at(1));

@@ -21,6 +21,7 @@ public:
 signals:
   void connected();
   void disconnected();
+  void readyRead();
 };
 
 #endif // INPUTPLUGIN_H

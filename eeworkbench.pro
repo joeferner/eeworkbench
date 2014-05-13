@@ -25,9 +25,7 @@ SOURCES += main.cpp\
     plugins/graph/GraphPlugin.cpp \
     plugins/graph/GraphWidget.cpp \
     plugins/fileInput/FileInputConnectDialog.cpp \
-    InputReaderThread.cpp \
     utils/RingBuffer.cpp \
-    CommandRunner.cpp \
     plugins/WidgetPluginInstance.cpp \
     plugins/graph/GraphWidgetPluginInstance.cpp \
     utils/UnitsUtil.cpp \
@@ -49,9 +47,7 @@ HEADERS  += MainWindow.h \
     plugins/graph/GraphPlugin.h \
     plugins/graph/GraphWidget.h \
     plugins/fileInput/FileInputConnectDialog.h \
-    InputReaderThread.h \
     utils/RingBuffer.h \
-    CommandRunner.h \
     plugins/WidgetPluginInstance.h \
     plugins/graph/GraphWidgetPluginInstance.h \
     utils/UnitsUtil.h \

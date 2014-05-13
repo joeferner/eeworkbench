@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QObject>
 #include <QTextStream>
-#include "../InputReaderThread.h"
+#include "InputPlugin.h"
 
 class WidgetPlugin;
 
@@ -15,7 +15,7 @@ public:
   WidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name);
   virtual ~WidgetPluginInstance();
 
-  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args) = 0;
+  virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) = 0;
   virtual QWidget* getWidget() = 0;
   virtual void save(QTextStream& out) = 0;
   WidgetPlugin* getWidgetPlugin() { return m_widgetPlugin; }

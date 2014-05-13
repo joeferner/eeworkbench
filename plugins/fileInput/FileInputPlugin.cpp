@@ -22,7 +22,7 @@ void FileInputPlugin::connect() {
     settings.setValue(FILE_NAME_SETTING, fileName);
     settings.sync();
 
-    openFile(fileName);
+    m_file = openFile(fileName);
     if(m_file) {
       emit connected();
     }
@@ -33,18 +33,23 @@ bool FileInputPlugin::isConnected() {
   return m_file != NULL;
 }
 
-void FileInputPlugin::openFile(const QString& fileName) {
+void FileInputPlugin::onReadyRead() {
+  emit readyRead();
+}
+
+QFile* FileInputPlugin::openFile(const QString& fileName) {
   QFile* file = new QFile(fileName);
   if(!file->exists()) {
     delete file;
-    return;
+    return NULL;
   }
+  QObject::connect(file, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   if(!file->open(QIODevice::ReadOnly)) {
     delete file;
-    return;
+    return NULL;
   }
   qDebug() << "FileInputPlugin: Opened file:" << file->fileName();
-  m_file = file;
+  return file;
 }
 
 bool FileInputPlugin::readByte(uchar* ch) {

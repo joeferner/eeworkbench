@@ -29,15 +29,15 @@ public:
   static bool sampleCompareFallingThrough(double originalValue, double d1, double d2);
   static bool sampleCompareRisingThrough(double originalValue, double d1, double d2);
 
-  virtual void runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args);
-  virtual QWidget* getWidget();
+  virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin);
+  virtual QWidget* getWidget() { return m_widget; }
   virtual void save(QTextStream& out);
   void addSignal(const QString& name, int bits, double scaleMin, double scaleMax);
   void addData(QStringList args);
-  void beginData(InputReaderThread* inputReaderThread, int numberOfBytes);
+  void beginData(InputPlugin* inputPlugin, int numberOfBytes);
 
   int getSignalCount() const { return m_signals.length(); }
-  const GraphSignal* getSignal(int i) const { if(i < m_signals.length()) { return m_signals.at(i); } }
+  const GraphSignal* getSignal(int i) const { return i < m_signals.length() ? m_signals.at(i) : NULL; }
   const unsigned char* getBuffer() const { return m_buffer; }
   int getBufferSize() const { return m_bufferSize; }
   int getBufferWritePos() const { return m_bufferWritePos; }

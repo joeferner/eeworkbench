@@ -5,17 +5,20 @@
 
 GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name) :
   WidgetPluginInstance(widgetPlugin, name),
-  m_widget(NULL),
   m_timePerSample(0.001) {
+
   m_bufferSize = 10 * 1024 * 1024;
   m_buffer = new unsigned char[m_bufferSize];
-  clear();
 
   m_colorsCount = 3;
   m_colors = new QColor[m_colorsCount];
   m_colors[0].setRgb(255, 0, 0);
   m_colors[1].setRgb(0, 255, 0);
   m_colors[2].setRgb(0, 0, 255);
+
+  m_widget = new GraphWidget(this);
+  connect(this, SIGNAL(dataAdded()), m_widget, SLOT(updateData()));
+  clear();
 }
 
 GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
@@ -32,9 +35,7 @@ GraphWidgetPluginInstance::~GraphWidgetPluginInstance() {
 void GraphWidgetPluginInstance::clear() {
   m_bufferWritePos = 0;
   m_bufferAvailable = 0;
-  if(m_widget != NULL) {
-    m_widget->update();
-  }
+  m_widget->update();
 }
 
 void GraphWidgetPluginInstance::save(QTextStream& out) {
@@ -50,7 +51,7 @@ void GraphWidgetPluginInstance::save(QTextStream& out) {
   out << "\n";
 }
 
-void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread, const QString& functionName, QStringList args) {
+void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) {
   if(functionName == "addSignal") {
     if(args.length() == 4) {
       addSignal(args.at(0), args.at(1).toInt(), args.at(2).toDouble(), args.at(3).toDouble());
@@ -77,7 +78,7 @@ void GraphWidgetPluginInstance::runCommand(InputReaderThread* inputReaderThread,
     }
   } else if(functionName == "beginData") {
     if(args.length() == 1) {
-      beginData(inputReaderThread, args.at(0).toInt());
+      beginData(inputPlugin, args.at(0).toInt());
     } else {
       qWarning() << "Graph: beginData: Invalid number of arguments. Expected 1, found " << args.length();
     }
@@ -94,10 +95,10 @@ void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
   }
 }
 
-void GraphWidgetPluginInstance::beginData(InputReaderThread* inputReaderThread, int numberOfBytes) {
+void GraphWidgetPluginInstance::beginData(InputPlugin* inputPlugin, int numberOfBytes) {
   while(numberOfBytes > 0) {
     qint64 read = qMin(numberOfBytes, m_bufferSize - m_bufferWritePos);
-    read = inputReaderThread->read(&m_buffer[m_bufferWritePos], read);
+    read = inputPlugin->read(&m_buffer[m_bufferWritePos], read);
     incrementBufferWritePos(read);
     numberOfBytes -= read;
   }
@@ -156,14 +157,6 @@ void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double 
   signal->scaleMax = scaleMax;
   signal->color = m_colors[m_signals.length() % m_colorsCount];
   m_signals.append(signal);
-}
-
-QWidget* GraphWidgetPluginInstance::getWidget() {
-  if(m_widget == NULL) {
-    m_widget = new GraphWidget(this);
-    connect(this, SIGNAL(dataAdded()), m_widget, SLOT(updateData()));
-  }
-  return m_widget;
 }
 
 int GraphWidgetPluginInstance::getBytesPerSample() const {
