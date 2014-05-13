@@ -32,7 +32,10 @@ SOURCES += main.cpp\
     plugins/graph/GraphWidgetPluginInstance.cpp \
     utils/UnitsUtil.cpp \
     plugins/serialPort/SerialPortPlugin.cpp \
-    plugins/serialPort/SerialPortConnectDialog.cpp
+    plugins/serialPort/SerialPortConnectDialog.cpp \
+    plugins/label/LabelPlugin.cpp \
+    plugins/label/LabelWidgetPluginInstance.cpp \
+    plugins/label/LabelWidget.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -53,7 +56,10 @@ HEADERS  += MainWindow.h \
     plugins/graph/GraphWidgetPluginInstance.h \
     utils/UnitsUtil.h \
     plugins/serialPort/SerialPortPlugin.h \
-    plugins/serialPort/SerialPortConnectDialog.h
+    plugins/serialPort/SerialPortConnectDialog.h \
+    plugins/label/LabelPlugin.h \
+    plugins/label/LabelWidgetPluginInstance.h \
+    plugins/label/LabelWidget.h
 
 FORMS    += MainWindow.ui \
     plugins/fileInput/FileInputConnectDialog.ui \

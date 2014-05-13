@@ -2,12 +2,14 @@
 #include "fileInput/FileInputPlugin.h"
 #include "serialPort/SerialPortPlugin.h"
 #include "graph/GraphPlugin.h"
+#include "label/LabelPlugin.h"
 
 PluginManager::PluginManager() {
   m_inputPlugins.append(new FileInputPlugin());
   m_inputPlugins.append(new SerialPortPlugin());
 
   m_widgetPlugins.append(new GraphPlugin());
+  m_widgetPlugins.append(new LabelPlugin());
 }
 
 const WidgetPlugin* PluginManager::getWidgetPlugin(const QString& name) {
