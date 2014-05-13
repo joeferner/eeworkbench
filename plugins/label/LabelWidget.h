@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QLabel>
+#include <QFormLayout>
 
 class LabelWidgetPluginInstance;
 
@@ -20,6 +21,7 @@ public:
 
 private:
   LabelWidgetPluginInstance* m_labelWidgetPluginInstance;
+  QFormLayout* m_layout;
   QLabel* m_title;
   QLabel* m_text;
 };

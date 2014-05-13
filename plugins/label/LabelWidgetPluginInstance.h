@@ -16,8 +16,6 @@ public:
 
 private:
   LabelWidget* m_widget;
-  QString m_title;
-  QString m_text;
 
   void set(const QString& name, const QString& value);
 };

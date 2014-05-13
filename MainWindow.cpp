@@ -242,7 +242,7 @@ void MainWindow::runSetCommand(const QString& name, const QString& value) {
   }
 }
 
-void MainWindow::runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan) {
+void MainWindow::runAddCommand(const QString& type, const QString& name, int column, int row, int columnSpan, int rowSpan) {
   const WidgetPlugin* widgetPlugin = m_pluginManager.getWidgetPlugin(type);
   if(widgetPlugin == NULL) {
     qWarning() << "Invalid type" << type << "for add.";

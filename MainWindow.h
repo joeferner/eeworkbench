@@ -53,7 +53,7 @@ private:
   void runCommand(const QString& command);
   void runCommand(const QString& scope, const QString& functionName, QStringList args);
   void runSetCommand(const QString& name, const QString& value);
-  void runAddCommand(const QString& type, const QString& name, int row, int column, int rowSpan, int columnSpan);
+  void runAddCommand(const QString& type, const QString& name, int column, int row, int columnSpan, int rowSpan);
   void save(const QString& fileName);
   void save(QFile& file);
   int findWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance);

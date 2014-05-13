@@ -20,15 +20,15 @@ void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringL
 
 void LabelWidgetPluginInstance::set(const QString& name, const QString& value) {
   if(name == "title") {
-    m_title = value;
+    m_widget->setTitle(value);
   } else if(name == "text") {
-    m_text = value;
+    m_widget->setText(value);
   } else {
     qWarning() << "Label: Unknown set command" << name;
   }
 }
 
 void LabelWidgetPluginInstance::save(QTextStream& out) {
-  out << QString("!%1.set title,\"%2\"\n").arg(getName()).arg(m_title);
-  out << QString("!%1.set text,\"%2\"\n").arg(getName()).arg(m_text);
+  out << QString("!%1.set title,\"%2\"\n").arg(getName()).arg(m_widget->getTitle());
+  out << QString("!%1.set text,\"%2\"\n").arg(getName()).arg(m_widget->getText());
 }

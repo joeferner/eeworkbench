@@ -5,14 +5,20 @@ LabelWidget::LabelWidget(LabelWidgetPluginInstance* labelWidgetPluginInstance) :
   QWidget(NULL),
   m_labelWidgetPluginInstance(labelWidgetPluginInstance)
 {
-  m_title = new QLabel(this);
-  m_title->setText("Title");
+  m_layout = new QFormLayout();
+  setLayout(m_layout);
 
-  m_text = new QLabel(this);
+  m_title = new QLabel();
+  m_title->setText("Title");
+  m_layout->addWidget(m_title);
+
+  m_text = new QLabel();
   m_text->setText("Text");
+  m_layout->addWidget(m_text);
 }
 
 LabelWidget::~LabelWidget() {
   delete m_title;
   delete m_text;
+  delete m_layout;
 }
