@@ -36,6 +36,7 @@ public:
   void addSignal(const QString& name, int bits, double scaleMin, double scaleMax);
   void addData(QStringList args);
   void beginData(InputPlugin* inputPlugin, int numberOfBytes);
+  int getSignalIndex(GraphSignal* signal);
 
   const QList<GraphSignal*> getSignals() const { return m_signals; }
   const unsigned char* getBuffer() const { return m_buffer; }
@@ -45,10 +46,16 @@ public:
   double getTimePerSample() const { return m_timePerSample; }
   int getBytesPerSample() const;
   double getValue(int sample, int signal);
+  int getBinaryValue(int sample, int signal);
   int findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn);
+  int findBinarySample(int startingSample, int signalNumber, int value);
+  int findBinarySample(int startingSample, int signalNumber, int direction, int value);
   void clear();
+  GraphAnalyzer* getAnalyzer(const QString& name);
   const QList<GraphAnalyzer*> getAnalyzers() const { return m_graphAnalyzers; }
   const QList<GraphAnalyzerInstance*> getAnalyzerInstances() const { return m_graphAnalyzerInstances; }
+
+  void addAnalyzer(const QString& name, const QString& config);
   void addAnalyzer(GraphAnalyzer* graphAnalyzer);
 
 private:

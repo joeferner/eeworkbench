@@ -74,7 +74,7 @@ void GraphWidget::mousePressEvent(QMouseEvent* event) {
   if(m_addAnalyzerRect.contains(event->pos())) {
     onAddAnalyzerPressed();
   } else if(m_refreshAnalyzerRect.contains(event->pos())) {
-
+    onRefreshAnalyzerPressed();
   }
 }
 
@@ -451,7 +451,7 @@ void GraphWidget::paintAnalyzers(QPainter& painter) {
 
   QList<GraphAnalyzerInstance*> graphAnalyzerInstances = m_graphWidgetPluginInstance->getAnalyzerInstances();
   int i = graphAnalyzerInstances.length() - 1;
-  foreach(GraphAnalyzerInstance* graphAnalyzerInstance, graphAnalyzerInstances) {
+  foreach(GraphAnalyzerInstance * graphAnalyzerInstance, graphAnalyzerInstances) {
     paintGraphAnalyzerInstance(painter, graphAnalyzerInstance, i);
     i--;
   }
@@ -503,3 +503,10 @@ void GraphWidget::onAddAnalyzerPressed() {
     }
   }
 }
+
+void GraphWidget::onRefreshAnalyzerPressed() {
+  foreach(GraphAnalyzerInstance * graphAnalyzerInstance, m_graphWidgetPluginInstance->getAnalyzerInstances()) {
+    graphAnalyzerInstance->refresh(m_graphWidgetPluginInstance);
+  }
+}
+

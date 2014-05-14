@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     plugins/graph/GraphAnalyzer.cpp \
     plugins/graph/analyzers/em4305/Em4305AnalyzerConfigDialog.cpp \
     plugins/graph/GraphAnalyzerInstance.cpp \
-    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.cpp
+    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.cpp \
+    plugins/graph/GraphMark.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -65,7 +66,8 @@ HEADERS  += MainWindow.h \
     plugins/graph/GraphAnalyzer.h \
     plugins/graph/analyzers/em4305/Em4305AnalyzerConfigDialog.h \
     plugins/graph/GraphAnalyzerInstance.h \
-    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.h
+    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.h \
+    plugins/graph/GraphMark.h
 
 FORMS    += MainWindow.ui \
     plugins/fileInput/FileInputConnectDialog.ui \

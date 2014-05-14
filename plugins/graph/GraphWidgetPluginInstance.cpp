@@ -1,5 +1,6 @@
 #include "GraphWidgetPluginInstance.h"
 #include "GraphWidget.h"
+#include "GraphAnalyzerInstance.h"
 #include "analyzers/em4305/Em4305Analyzer.h"
 #include <math.h>
 #include <QDebug>
@@ -45,7 +46,19 @@ void GraphWidgetPluginInstance::save(QTextStream& out) {
   out << QString("!%1.set timePerSample,%2\n").arg(getName()).arg(m_timePerSample);
 
   foreach(GraphSignal * signal, m_signals) {
-    out << QString("!%1.addSignal %2,%3,%4,%5\n").arg(getName()).arg(signal->name).arg(signal->bits).arg(signal->scaleMin).arg(signal->scaleMax);
+    out << QString("!%1.addSignal %2,%3,%4,%5\n")
+        .arg(getName())
+        .arg(signal->name)
+        .arg(signal->bits)
+        .arg(signal->scaleMin)
+        .arg(signal->scaleMax);
+  }
+
+  foreach(GraphAnalyzerInstance * graphAnalyzerInstance, m_graphAnalyzerInstances) {
+    out << QString("!%1.addAnalyzer %2,\"%3\"\n")
+        .arg(getName())
+        .arg(graphAnalyzerInstance->getName())
+        .arg(graphAnalyzerInstance->getConfig());
   }
 
   out << QString("!%1.beginData %2\n").arg(getName()).arg(m_bufferAvailable);
@@ -55,7 +68,19 @@ void GraphWidgetPluginInstance::save(QTextStream& out) {
 }
 
 void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) {
-  if(functionName == "addSignal") {
+  if(functionName == "data") {
+    if(args.length() == m_signals.length()) {
+      addData(args);
+    } else {
+      qWarning() << "Graph: data: Invalid number of arguments. Expected" << m_signals.length() << ", found " << args.length();
+    }
+  } else if(functionName == "beginData") {
+    if(args.length() == 1) {
+      beginData(inputPlugin, args.at(0).toInt());
+    } else {
+      qWarning() << "Graph: beginData: Invalid number of arguments. Expected 1, found " << args.length();
+    }
+  } else if(functionName == "addSignal") {
     if(args.length() == 4) {
       addSignal(args.at(0), args.at(1).toInt(), args.at(2).toDouble(), args.at(3).toDouble());
     } else {
@@ -73,17 +98,11 @@ void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringL
     } else {
       qWarning() << "Graph: clear: Invalid number of arguments. Expected 0, found " << args.length();
     }
-  } else if(functionName == "data") {
-    if(args.length() == m_signals.length()) {
-      addData(args);
+  } else if(functionName == "addAnalyzer") {
+    if(args.length() == 2) {
+      addAnalyzer(args.at(0), args.at(1));
     } else {
-      qWarning() << "Graph: data: Invalid number of arguments. Expected" << m_signals.length() << ", found " << args.length();
-    }
-  } else if(functionName == "beginData") {
-    if(args.length() == 1) {
-      beginData(inputPlugin, args.at(0).toInt());
-    } else {
-      qWarning() << "Graph: beginData: Invalid number of arguments. Expected 1, found " << args.length();
+      qWarning() << "Graph: addGraphAnalyzer: Invalid number of arguments. Expected 2, found " << args.length();
     }
   } else {
     qWarning() << "Graph: Unknown Command" << functionName << args;
@@ -214,6 +233,29 @@ double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
   return (double)temp / (double)(signal->maxValue) * (signal->scaleMax - signal->scaleMin) + signal->scaleMin;
 }
 
+int GraphWidgetPluginInstance::getBinaryValue(int sample, int signalIndex) {
+  const GraphSignal* signal = m_signals.at(signalIndex);
+  double mid = (signal->scaleMax + signal->scaleMin) / 2;
+  double v = getValue(sample, signalIndex);
+  return v > mid ? 1 : 0;
+}
+
+int GraphWidgetPluginInstance::findBinarySample(int startingSample, int signalNumber, int value) {
+  return findBinarySample(startingSample, signalNumber, 1, value);
+}
+
+int GraphWidgetPluginInstance::findBinarySample(int startingSample, int signalNumber, int direction, int value) {
+  int count;
+  int sample;
+  for(count = 0, sample = startingSample; count < m_bufferAvailable; count++, sample += direction) {
+    int v = getBinaryValue(sample, signalNumber);
+    if(v == value) {
+      return sample;
+    }
+  }
+  return -1;
+}
+
 int GraphWidgetPluginInstance::findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn) {
   double startingValue = getValue(startingSample, signalNumber);
   int count;
@@ -248,9 +290,44 @@ bool GraphWidgetPluginInstance::sampleCompareRisingThrough(double originalValue,
   return d1 <= originalValue && d2 > originalValue;
 }
 
+GraphAnalyzer* GraphWidgetPluginInstance::getAnalyzer(const QString& name) {
+  foreach(GraphAnalyzer * graphAnalyzer, m_graphAnalyzers) {
+    if(graphAnalyzer->getName() == name) {
+      return graphAnalyzer;
+    }
+  }
+  return NULL;
+}
+
+void GraphWidgetPluginInstance::addAnalyzer(const QString& name, const QString& config) {
+  GraphAnalyzer* graphAnalyzer = getAnalyzer(name);
+  if(graphAnalyzer == NULL) {
+    qDebug() << "Could not find analyzer " << name;
+    return;
+  }
+
+  GraphAnalyzerInstance* graphAnalyzerInstance = graphAnalyzer->create((GraphWidget*)getWidget(), this, config);
+  if(graphAnalyzerInstance == NULL) {
+    return;
+  }
+  m_graphAnalyzerInstances.append(graphAnalyzerInstance);
+}
+
 void GraphWidgetPluginInstance::addAnalyzer(GraphAnalyzer* graphAnalyzer) {
   GraphAnalyzerInstance* graphAnalyzerInstance = graphAnalyzer->configure((GraphWidget*)getWidget(), this);
   if(graphAnalyzerInstance) {
     m_graphAnalyzerInstances.append(graphAnalyzerInstance);
   }
 }
+
+int GraphWidgetPluginInstance::getSignalIndex(GraphSignal* signal) {
+  int i = 0;
+  foreach(GraphSignal * s, m_signals) {
+    if(s == signal) {
+      return i;
+    }
+    i++;
+  }
+  return -1;
+}
+

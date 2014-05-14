@@ -53,6 +53,7 @@ private:
   void paintGraphAnalyzerInstance(QPainter& painter, GraphAnalyzerInstance* graphAnalyzerInstance, int index);
 
   void onAddAnalyzerPressed();
+  void onRefreshAnalyzerPressed();
 
   int getScrollPosition() const;
   double xPositionToSample(double x) const;
