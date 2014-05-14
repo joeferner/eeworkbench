@@ -435,8 +435,8 @@ void GraphWidget::paintAnalyzerMarks(QPainter& painter) {
     foreach(GraphMark * mark, graphAnalyzerInstance->getMarks()) {
       int xStart = sampleToX(mark->getStartIndex());
       int xEnd = sampleToX(mark->getEndIndex());
-      QRect rect = m_signalRects[mark->getSignalIndex()].translated(0, -m_signalMarginTop);
-      rect.setHeight(m_signalMarginTop);
+      QRect rect = m_signalRects[mark->getSignalIndex()].translated(0, -m_signalMarginTop - 2);
+      rect.setHeight(m_signalMarginTop - 2);
       rect.setLeft(xStart);
       rect.setRight(xEnd);
       painter.setPen(penRect);
