@@ -74,6 +74,7 @@ private:
   void writeByteToBuffer(unsigned char b);
   void incrementBufferWritePos(int i);
   void set(const QString& name, const QString& value);
+  void refreshAnalyzers();
 
 signals:
   void dataAdded();

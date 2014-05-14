@@ -33,6 +33,9 @@ MainWindow::MainWindow(QWidget* parent) :
   if(selectedInputPlugin.length() > 0) {
     m_inputSelectComboBox->setCurrentText(selectedInputPlugin);
   }
+
+  restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+  restoreState(settings.value("mainWindowState").toByteArray());
 }
 
 MainWindow::~MainWindow() {
@@ -92,6 +95,10 @@ void MainWindow::closeConnectedInputPlugin() {
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
+  QSettings settings;
+  settings.setValue("mainWindowGeometry", saveGeometry());
+  settings.setValue("mainWindowState", saveState());
+
   closeConnectedInputPlugin();
 }
 

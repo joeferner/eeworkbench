@@ -124,6 +124,7 @@ void GraphWidgetPluginInstance::beginData(InputPlugin* inputPlugin, int numberOf
     incrementBufferWritePos(read);
     numberOfBytes -= read;
   }
+  refreshAnalyzers();
 }
 
 void GraphWidgetPluginInstance::addData(QStringList args) {
@@ -148,6 +149,7 @@ void GraphWidgetPluginInstance::addData(QStringList args) {
   }
 
   writeByteToBuffer(temp);
+  refreshAnalyzers();
 
   emit dataAdded();
 }
@@ -179,6 +181,7 @@ void GraphWidgetPluginInstance::addSignal(const QString& name, int bits, double 
   signal->scaleMax = scaleMax;
   signal->color = m_colors[m_signals.length() % m_colorsCount];
   m_signals.append(signal);
+  refreshAnalyzers();
 }
 
 int GraphWidgetPluginInstance::getBytesPerSample() const {
@@ -311,12 +314,14 @@ void GraphWidgetPluginInstance::addAnalyzer(const QString& name, const QString& 
     return;
   }
   m_graphAnalyzerInstances.append(graphAnalyzerInstance);
+  refreshAnalyzers();
 }
 
 void GraphWidgetPluginInstance::addAnalyzer(GraphAnalyzer* graphAnalyzer) {
   GraphAnalyzerInstance* graphAnalyzerInstance = graphAnalyzer->configure((GraphWidget*)getWidget(), this);
   if(graphAnalyzerInstance) {
     m_graphAnalyzerInstances.append(graphAnalyzerInstance);
+    refreshAnalyzers();
   }
 }
 
@@ -329,5 +334,10 @@ int GraphWidgetPluginInstance::getSignalIndex(GraphSignal* signal) {
     i++;
   }
   return -1;
+}
+
+void GraphWidgetPluginInstance::refreshAnalyzers() {
+  GraphWidget* graphWidget = (GraphWidget*)getWidget();
+  graphWidget->refreshAnalyzers();
 }
 

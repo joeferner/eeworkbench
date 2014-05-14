@@ -13,6 +13,7 @@ class GraphWidget : public QAbstractScrollArea {
   Q_OBJECT
 public:
   explicit GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance);
+  void refreshAnalyzers();
 
 signals:
 
@@ -38,7 +39,6 @@ private:
   QRect m_measurementValueTextBoundingRect;
   QRect m_signalRects[100];
   GraphWidgetPluginInstance* m_graphWidgetPluginInstance;
-  QRectF m_refreshAnalyzerRect;
   QRectF m_addAnalyzerRect;
   int m_analyzerWidth;
   int m_signalMarginTop;
@@ -52,11 +52,9 @@ private:
   void paintMeasurements(QPainter& painter);
   void paintMeasurementField(QPainter& painter, QRect& rect, const QString& title, const QString& value);
   void paintAddAnalyzerRect(QPainter& painter);
-  void paintRefreshAnalyzerRect(QPainter& painter);
   void paintGraphAnalyzerInstance(QPainter& painter, GraphAnalyzerInstance* graphAnalyzerInstance, int index);
 
   void onAddAnalyzerPressed();
-  void onRefreshAnalyzerPressed();
 
   int getScrollPosition() const;
   double xPositionToSample(double x) const;

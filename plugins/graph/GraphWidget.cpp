@@ -76,8 +76,6 @@ void GraphWidget::wheelEvent(QWheelEvent* event) {
 void GraphWidget::mousePressEvent(QMouseEvent* event) {
   if(m_addAnalyzerRect.contains(event->pos())) {
     onAddAnalyzerPressed();
-  } else if(m_refreshAnalyzerRect.contains(event->pos())) {
-    onRefreshAnalyzerPressed();
   }
 }
 
@@ -470,13 +468,8 @@ void GraphWidget::paintAnalyzers(QPainter& painter) {
   painter.setClipRect(analyzersRect);
   painter.setClipping(true);
 
-  // Draw refresh rect
-  int refreshWidth = fm.boundingRect("Refresh").width() + 6;
-  m_refreshAnalyzerRect.setRect(right - refreshWidth - margin, top + margin, refreshWidth, height);
-  paintRefreshAnalyzerRect(painter);
-
   // Draw add rect
-  m_addAnalyzerRect.setRect(m_refreshAnalyzerRect.left() - height - margin, top + margin, height, height);
+  m_addAnalyzerRect.setRect(right - height - margin, top + margin, height, height);
   paintAddAnalyzerRect(painter);
 
   QList<GraphAnalyzerInstance*> graphAnalyzerInstances = m_graphWidgetPluginInstance->getAnalyzerInstances();
@@ -487,13 +480,6 @@ void GraphWidget::paintAnalyzers(QPainter& painter) {
   }
 
   painter.setClipping(false);
-}
-
-void GraphWidget::paintRefreshAnalyzerRect(QPainter& painter) {
-  QRectF rect = m_refreshAnalyzerRect.translated(0.5, 0.5);
-
-  painter.drawRoundedRect(rect, 2, 2);
-  painter.drawText(rect, Qt::AlignCenter, "Refresh");
 }
 
 void GraphWidget::paintAddAnalyzerRect(QPainter& painter) {
@@ -534,9 +520,10 @@ void GraphWidget::onAddAnalyzerPressed() {
   }
 }
 
-void GraphWidget::onRefreshAnalyzerPressed() {
+void GraphWidget::refreshAnalyzers() {
   foreach(GraphAnalyzerInstance * graphAnalyzerInstance, m_graphWidgetPluginInstance->getAnalyzerInstances()) {
     graphAnalyzerInstance->refresh(m_graphWidgetPluginInstance);
   }
+  viewport()->update();
 }
 
