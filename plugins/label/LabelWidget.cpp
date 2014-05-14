@@ -3,8 +3,7 @@
 
 LabelWidget::LabelWidget(LabelWidgetPluginInstance* labelWidgetPluginInstance) :
   QWidget(NULL),
-  m_labelWidgetPluginInstance(labelWidgetPluginInstance)
-{
+  m_labelWidgetPluginInstance(labelWidgetPluginInstance) {
   m_layout = new QFormLayout();
   setLayout(m_layout);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

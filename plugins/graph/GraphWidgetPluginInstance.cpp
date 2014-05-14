@@ -1,5 +1,6 @@
 #include "GraphWidgetPluginInstance.h"
 #include "GraphWidget.h"
+#include "analyzers/em4305/Em4305Analyzer.h"
 #include <math.h>
 #include <QDebug>
 
@@ -15,6 +16,8 @@ GraphWidgetPluginInstance::GraphWidgetPluginInstance(WidgetPlugin* widgetPlugin,
   m_colors[0].setRgb(255, 0, 0);
   m_colors[1].setRgb(0, 255, 0);
   m_colors[2].setRgb(0, 0, 255);
+
+  m_graphAnalyzers.append(new Em4305Analyzer());
 
   m_widget = new GraphWidget(this);
   connect(this, SIGNAL(dataAdded()), m_widget, SLOT(updateData()));
@@ -187,7 +190,7 @@ double GraphWidgetPluginInstance::getValue(int sample, int signalNumber) {
   uint temp = 0;
   const GraphSignal* signal = NULL;
   for(int s = 0; s <= signalNumber; s++) {
-    signal = getSignal(s);
+    signal = m_signals.at(s);
     temp = 0;
     for(int signalBit = 0; signalBit < signal->bits; signalBit++) {
       temp = (temp << 1) | (bufferTemp & 0x80 ? 0x01 : 0x00);
@@ -243,4 +246,11 @@ bool GraphWidgetPluginInstance::sampleCompareFallingThrough(double originalValue
 
 bool GraphWidgetPluginInstance::sampleCompareRisingThrough(double originalValue, double d1, double d2) {
   return d1 <= originalValue && d2 > originalValue;
+}
+
+void GraphWidgetPluginInstance::addAnalyzer(GraphAnalyzer* graphAnalyzer) {
+  GraphAnalyzerInstance* graphAnalyzerInstance = graphAnalyzer->configure((GraphWidget*)getWidget(), this);
+  if(graphAnalyzerInstance) {
+    m_graphAnalyzerInstances.append(graphAnalyzerInstance);
+  }
 }

@@ -6,6 +6,8 @@
 #include <QPoint>
 
 class GraphWidgetPluginInstance;
+class GraphAnalyzer;
+class GraphAnalyzerInstance;
 
 class GraphWidget : public QAbstractScrollArea {
   Q_OBJECT
@@ -20,6 +22,7 @@ public slots:
 protected:
   virtual void paintEvent(QPaintEvent* painter);
   virtual void mouseMoveEvent(QMouseEvent* event);
+  virtual void mousePressEvent(QMouseEvent* event);
   virtual void wheelEvent(QWheelEvent* event);
 
 private:
@@ -27,6 +30,7 @@ private:
   int m_marginLeft;
   int m_marginRight;
   int m_marginTop;
+  int m_marginBottom;
   int m_lastMouseSignal;
   double m_lastMouseSample;
   QPoint m_mousePosition;
@@ -34,12 +38,21 @@ private:
   QRect m_measurementValueTextBoundingRect;
   QRect m_signalRects[100];
   GraphWidgetPluginInstance* m_graphWidgetPluginInstance;
+  QRectF m_refreshAnalyzerRect;
+  QRectF m_addAnalyzerRect;
+  int m_analyzerWidth;
 
   void updateHorizontalScrollBar();
   void paintScale(QPainter& painter);
+  void paintAnalyzers(QPainter& painter);
   void paintSignals(QPainter& painter);
   void paintMeasurements(QPainter& painter);
   void paintMeasurementField(QPainter& painter, QRect& rect, const QString& title, const QString& value);
+  void paintAddAnalyzerRect(QPainter& painter);
+  void paintRefreshAnalyzerRect(QPainter& painter);
+  void paintGraphAnalyzerInstance(QPainter& painter, GraphAnalyzerInstance* graphAnalyzerInstance, int index);
+
+  void onAddAnalyzerPressed();
 
   int getScrollPosition() const;
   double xPositionToSample(double x) const;

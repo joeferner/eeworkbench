@@ -5,8 +5,11 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QMenu>
 #include <math.h>
 #include "../../utils/UnitsUtil.h"
+#include "GraphAnalyzer.h"
+#include "GraphAnalyzerInstance.h"
 
 GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
   QAbstractScrollArea(NULL),
@@ -41,7 +44,7 @@ void GraphWidget::mouseMoveEvent(QMouseEvent* event) {
   }
 
   double sample = -1;
-  if(m_mousePosition.x() > m_marginLeft && m_mousePosition.y() > m_marginTop) {
+  if(m_mousePosition.x() > m_marginLeft) {
     sample = xPositionToSample(m_mousePosition.x());
   }
   if(m_lastMouseSample != sample) {
@@ -67,6 +70,14 @@ void GraphWidget::wheelEvent(QWheelEvent* event) {
   viewport()->update();
 }
 
+void GraphWidget::mousePressEvent(QMouseEvent* event) {
+  if(m_addAnalyzerRect.contains(event->pos())) {
+    onAddAnalyzerPressed();
+  } else if(m_refreshAnalyzerRect.contains(event->pos())) {
+
+  }
+}
+
 void GraphWidget::updateData() {
   viewport()->update();
 }
@@ -82,6 +93,7 @@ void GraphWidget::paintEvent(QPaintEvent*) {
 
   updateHorizontalScrollBar();
   paintScale(painter);
+  paintAnalyzers(painter);
   paintSignals(painter);
   paintMeasurements(painter);
 
@@ -91,7 +103,8 @@ void GraphWidget::paintEvent(QPaintEvent*) {
 void GraphWidget::paintSignals(QPainter& painter) {
   const unsigned char* buffer = m_graphWidgetPluginInstance->getBuffer();
   int bufferSize = m_graphWidgetPluginInstance->getBufferSize();
-  int signalCount = m_graphWidgetPluginInstance->getSignalCount();
+  const QList<GraphSignal*> graphSignals = m_graphWidgetPluginInstance->getSignals();
+  int signalCount = graphSignals.length();
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
   double timePerSample = m_graphWidgetPluginInstance->getTimePerSample();
   int bytesPerSample = m_graphWidgetPluginInstance->getBytesPerSample();
@@ -100,18 +113,19 @@ void GraphWidget::paintSignals(QPainter& painter) {
     return;
   }
 
-  int signalMargin = 10;
-  int signalHeight = ((viewport()->height() - m_marginTop) / signalCount) - (2 * signalMargin);
+  int signalMarginTop = 20;
+  int signalMarginBottom = 5;
+  int signalHeight = ((viewport()->height() - m_marginTop - m_marginBottom) / signalCount) - (signalMarginTop + signalMarginBottom);
   int signalTop, s;
 
-  for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
+  for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
     m_signalRects[s].setRect(m_marginLeft, signalTop, viewport()->width() - m_marginLeft - m_marginRight, signalHeight);
   }
   m_signalRects[s].setRect(-1, -1, 0, 0);
 
   // print signal labels
-  for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
-    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
+  for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
+    const GraphSignal* signal = graphSignals.at(s);
     QRect rect(0, signalTop, m_marginLeft, signalHeight);
     painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));
   }
@@ -126,8 +140,8 @@ void GraphWidget::paintSignals(QPainter& painter) {
     unsigned char bufferTemp = buffer[bufferIndex];
     int bufferTempBit = 0;
     int x = timeToX((bufferCount / bytesPerSample) * timePerSample);
-    for(s = 0, signalTop = m_marginTop + signalMargin; s < signalCount; s++, signalTop += signalHeight + (2 * signalMargin)) {
-      const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(s);
+    for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
+      const GraphSignal* signal = graphSignals.at(s);
       QBrush brush(signal->color);
       QPen pen(brush, 1, Qt::SolidLine);
       painter.setPen(pen);
@@ -203,7 +217,7 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   QString dutyCycleString = "-";
 
   if(m_lastMouseSignal != -1) {
-    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignal(m_lastMouseSignal);
+    const GraphSignal* signal = m_graphWidgetPluginInstance->getSignals().at(m_lastMouseSignal);
     if(signal != NULL) {
       channel = signal->name;
     }
@@ -405,4 +419,87 @@ void GraphWidget::paintScale(QPainter& painter) {
   painter.setClipping(false);
 }
 
+void GraphWidget::paintAnalyzers(QPainter& painter) {
+  QBrush brush(QColor(50, 50, 50));
+  QPen pen(QBrush(QColor(255, 255, 255)), 1, Qt::SolidLine);
+  painter.setPen(pen);
+  painter.setBrush(brush);
 
+  QFontMetrics fm(painter.font());
+  QRect fontBoundingBox = fm.boundingRect("i2C Analyzer");
+
+  int margin = 7;
+  int height = fontBoundingBox.height();
+  height = height + (height % 2);
+  m_marginBottom = height + (margin * 2);
+  m_analyzerWidth = fontBoundingBox.width();
+  int top = viewport()->height() - m_marginBottom;
+  int right = viewport()->width() - m_marginRight;
+
+  QRect analyzersRect(m_marginLeft, top, right - m_marginLeft, m_marginBottom);
+  painter.setClipRect(analyzersRect);
+  painter.setClipping(true);
+
+  // Draw refresh rect
+  int refreshWidth = fm.boundingRect("Refresh").width() + 6;
+  m_refreshAnalyzerRect.setRect(right - refreshWidth - margin, top + margin, refreshWidth, height);
+  paintRefreshAnalyzerRect(painter);
+
+  // Draw add rect
+  m_addAnalyzerRect.setRect(m_refreshAnalyzerRect.left() - height - margin, top + margin, height, height);
+  paintAddAnalyzerRect(painter);
+
+  QList<GraphAnalyzerInstance*> graphAnalyzerInstances = m_graphWidgetPluginInstance->getAnalyzerInstances();
+  int i = graphAnalyzerInstances.length() - 1;
+  foreach(GraphAnalyzerInstance* graphAnalyzerInstance, graphAnalyzerInstances) {
+    paintGraphAnalyzerInstance(painter, graphAnalyzerInstance, i);
+    i--;
+  }
+
+  painter.setClipping(false);
+}
+
+void GraphWidget::paintRefreshAnalyzerRect(QPainter& painter) {
+  QRectF rect = m_refreshAnalyzerRect.translated(0.5, 0.5);
+
+  painter.drawRoundedRect(rect, 2, 2);
+  painter.drawText(rect, Qt::AlignCenter, "Refresh");
+}
+
+void GraphWidget::paintAddAnalyzerRect(QPainter& painter) {
+  QRectF rect = m_addAnalyzerRect.translated(0.5, 0.5);
+
+  int centerX = rect.left() + (rect.width() / 2.0);
+  int centerY = rect.top() + (rect.height() / 2.0);
+
+  painter.drawRoundedRect(rect, 2, 2);
+  painter.drawLine(rect.left() + 4, centerY, rect.right() - 4, centerY);
+  painter.drawLine(centerX, rect.top() + 4, centerX, rect.bottom() - 4);
+}
+
+void GraphWidget::paintGraphAnalyzerInstance(QPainter& painter, GraphAnalyzerInstance* graphAnalyzerInstance, int index) {
+  int left = m_addAnalyzerRect.left() - ((index + 1) * (m_analyzerWidth + 10));
+  QRectF rect(left, m_addAnalyzerRect.top(), m_analyzerWidth, m_addAnalyzerRect.height());
+  rect = rect.translated(0.5, 0.5);
+  graphAnalyzerInstance->setRect(rect);
+
+  painter.drawRoundedRect(rect, 2, 2);
+  painter.drawText(rect, graphAnalyzerInstance->getName());
+}
+
+void GraphWidget::onAddAnalyzerPressed() {
+  QPoint globalPos = mapToGlobal(m_mousePosition);
+
+  QMenu myMenu;
+  foreach(GraphAnalyzer * graphAnalyzer, m_graphWidgetPluginInstance->getAnalyzers()) {
+    myMenu.addAction(graphAnalyzer->getName());
+  }
+  QAction* selectedItem = myMenu.exec(globalPos);
+  if(selectedItem) {
+    foreach(GraphAnalyzer * graphAnalyzer, m_graphWidgetPluginInstance->getAnalyzers()) {
+      if(graphAnalyzer->getName() == selectedItem->text()) {
+        m_graphWidgetPluginInstance->addAnalyzer(graphAnalyzer);
+      }
+    }
+  }
+}

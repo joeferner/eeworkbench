@@ -33,7 +33,12 @@ SOURCES += main.cpp\
     plugins/serialPort/SerialPortConnectDialog.cpp \
     plugins/label/LabelPlugin.cpp \
     plugins/label/LabelWidgetPluginInstance.cpp \
-    plugins/label/LabelWidget.cpp
+    plugins/label/LabelWidget.cpp \
+    plugins/graph/analyzers/em4305/Em4305Analyzer.cpp \
+    plugins/graph/GraphAnalyzer.cpp \
+    plugins/graph/analyzers/em4305/Em4305AnalyzerConfigDialog.cpp \
+    plugins/graph/GraphAnalyzerInstance.cpp \
+    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.cpp
 
 HEADERS  += MainWindow.h \
     commands/CommandBase.h \
@@ -55,8 +60,14 @@ HEADERS  += MainWindow.h \
     plugins/serialPort/SerialPortConnectDialog.h \
     plugins/label/LabelPlugin.h \
     plugins/label/LabelWidgetPluginInstance.h \
-    plugins/label/LabelWidget.h
+    plugins/label/LabelWidget.h \
+    plugins/graph/analyzers/em4305/Em4305Analyzer.h \
+    plugins/graph/GraphAnalyzer.h \
+    plugins/graph/analyzers/em4305/Em4305AnalyzerConfigDialog.h \
+    plugins/graph/GraphAnalyzerInstance.h \
+    plugins/graph/analyzers/em4305/Em4305AnalyzerInstance.h
 
 FORMS    += MainWindow.ui \
     plugins/fileInput/FileInputConnectDialog.ui \
-    plugins/serialPort/SerialPortConnectDialog.ui
+    plugins/serialPort/SerialPortConnectDialog.ui \
+    plugins/graph/analyzers/em4305/Em4305AnalyzerConfigDialog.ui

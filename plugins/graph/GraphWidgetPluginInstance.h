@@ -3,6 +3,7 @@
 
 #include "../WidgetPluginInstance.h"
 #include "GraphWidget.h"
+#include "GraphAnalyzer.h"
 #include <QList>
 #include <QColor>
 #include <QObject>
@@ -36,8 +37,7 @@ public:
   void addData(QStringList args);
   void beginData(InputPlugin* inputPlugin, int numberOfBytes);
 
-  int getSignalCount() const { return m_signals.length(); }
-  const GraphSignal* getSignal(int i) const { return i < m_signals.length() ? m_signals.at(i) : NULL; }
+  const QList<GraphSignal*> getSignals() const { return m_signals; }
   const unsigned char* getBuffer() const { return m_buffer; }
   int getBufferSize() const { return m_bufferSize; }
   int getBufferWritePos() const { return m_bufferWritePos; }
@@ -47,6 +47,9 @@ public:
   double getValue(int sample, int signal);
   int findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn);
   void clear();
+  const QList<GraphAnalyzer*> getAnalyzers() const { return m_graphAnalyzers; }
+  const QList<GraphAnalyzerInstance*> getAnalyzerInstances() const { return m_graphAnalyzerInstances; }
+  void addAnalyzer(GraphAnalyzer* graphAnalyzer);
 
 private:
   GraphWidget* m_widget;
@@ -58,6 +61,8 @@ private:
   int m_bufferAvailable;
   int m_colorsCount;
   QColor* m_colors;
+  QList<GraphAnalyzer*> m_graphAnalyzers;
+  QList<GraphAnalyzerInstance*> m_graphAnalyzerInstances;
 
   void writeByteToBuffer(unsigned char b);
   void incrementBufferWritePos(int i);
