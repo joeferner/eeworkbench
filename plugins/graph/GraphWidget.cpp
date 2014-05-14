@@ -10,6 +10,7 @@
 #include "../../utils/UnitsUtil.h"
 #include "GraphAnalyzer.h"
 #include "GraphAnalyzerInstance.h"
+#include "GraphMark.h"
 
 GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
   QAbstractScrollArea(NULL),
@@ -18,7 +19,9 @@ GraphWidget::GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance) :
   m_marginRight(100),
   m_lastMouseSignal(-1),
   m_lastMouseSample(-1),
-  m_graphWidgetPluginInstance(graphWidgetPluginInstance) {
+  m_graphWidgetPluginInstance(graphWidgetPluginInstance),
+  m_signalMarginTop(20),
+  m_signalMarginBottom(5) {
   m_signalRects[0].setRect(-1, -1, 0, 0);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   setMouseTracking(true);
@@ -94,6 +97,7 @@ void GraphWidget::paintEvent(QPaintEvent*) {
   updateHorizontalScrollBar();
   paintScale(painter);
   paintAnalyzers(painter);
+  paintAnalyzerMarks(painter);
   paintSignals(painter);
   paintMeasurements(painter);
 
@@ -113,18 +117,16 @@ void GraphWidget::paintSignals(QPainter& painter) {
     return;
   }
 
-  int signalMarginTop = 20;
-  int signalMarginBottom = 5;
-  int signalHeight = ((viewport()->height() - m_marginTop - m_marginBottom) / signalCount) - (signalMarginTop + signalMarginBottom);
+  int signalHeight = ((viewport()->height() - m_marginTop - m_marginBottom) / signalCount) - (m_signalMarginTop + m_signalMarginBottom);
   int signalTop, s;
 
-  for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
+  for(s = 0, signalTop = m_marginTop + m_signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (m_signalMarginTop + m_signalMarginBottom)) {
     m_signalRects[s].setRect(m_marginLeft, signalTop, viewport()->width() - m_marginLeft - m_marginRight, signalHeight);
   }
   m_signalRects[s].setRect(-1, -1, 0, 0);
 
   // print signal labels
-  for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
+  for(s = 0, signalTop = m_marginTop + m_signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (m_signalMarginTop + m_signalMarginBottom)) {
     const GraphSignal* signal = graphSignals.at(s);
     QRect rect(0, signalTop, m_marginLeft, signalHeight);
     painter.drawText(rect, signal->name, QTextOption(Qt::AlignRight | Qt::AlignVCenter));
@@ -140,7 +142,7 @@ void GraphWidget::paintSignals(QPainter& painter) {
     unsigned char bufferTemp = buffer[bufferIndex];
     int bufferTempBit = 0;
     int x = timeToX((bufferCount / bytesPerSample) * timePerSample);
-    for(s = 0, signalTop = m_marginTop + signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (signalMarginTop + signalMarginBottom)) {
+    for(s = 0, signalTop = m_marginTop + m_signalMarginTop; s < signalCount; s++, signalTop += signalHeight + (m_signalMarginTop + m_signalMarginBottom)) {
       const GraphSignal* signal = graphSignals.at(s);
       QBrush brush(signal->color);
       QPen pen(brush, 1, Qt::SolidLine);
@@ -414,6 +416,34 @@ void GraphWidget::paintScale(QPainter& painter) {
     rect.setRect(x - (maximumTextWidth / 2), y, maximumTextWidth, m_marginTop);
     str = UnitsUtil::toString(xPositionToTime(x), "s");
     painter.drawText(rect, Qt::AlignHCenter, str);
+  }
+
+  painter.setClipping(false);
+}
+
+void GraphWidget::paintAnalyzerMarks(QPainter& painter) {
+  QBrush brush(QColor(150, 50, 50));
+  QPen penRect(QBrush(QColor(175, 75, 75)), 1, Qt::SolidLine);
+  QPen penText(QBrush(QColor(255, 255, 255)), 1, Qt::SolidLine);
+  painter.setBrush(brush);
+  painter.setClipping(true);
+
+  QRect clipRect(m_marginLeft, m_marginTop, viewport()->width() - m_marginRight - m_marginLeft, viewport()->height() - m_marginBottom - m_marginTop);
+  painter.setClipRect(clipRect);
+
+  foreach(GraphAnalyzerInstance * graphAnalyzerInstance, m_graphWidgetPluginInstance->getAnalyzerInstances()) {
+    foreach(GraphMark * mark, graphAnalyzerInstance->getMarks()) {
+      int xStart = sampleToX(mark->getStartIndex());
+      int xEnd = sampleToX(mark->getEndIndex());
+      QRect rect = m_signalRects[mark->getSignalIndex()].translated(0, -m_signalMarginTop);
+      rect.setHeight(m_signalMarginTop);
+      rect.setLeft(xStart);
+      rect.setRight(xEnd);
+      painter.setPen(penRect);
+      painter.drawRoundedRect(rect, rect.height() / 2, rect.height() / 2);
+      painter.setPen(penText);
+      painter.drawText(rect, Qt::AlignCenter, mark->getTitle());
+    }
   }
 
   painter.setClipping(false);

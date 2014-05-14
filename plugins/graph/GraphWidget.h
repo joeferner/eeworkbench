@@ -41,10 +41,13 @@ private:
   QRectF m_refreshAnalyzerRect;
   QRectF m_addAnalyzerRect;
   int m_analyzerWidth;
+  int m_signalMarginTop;
+  int m_signalMarginBottom;
 
   void updateHorizontalScrollBar();
   void paintScale(QPainter& painter);
   void paintAnalyzers(QPainter& painter);
+  void paintAnalyzerMarks(QPainter& painter);
   void paintSignals(QPainter& painter);
   void paintMeasurements(QPainter& painter);
   void paintMeasurementField(QPainter& painter, QRect& rect, const QString& title, const QString& value);

@@ -19,6 +19,7 @@ public:
   virtual QString getConfig() const = 0;
   void clearMarks();
   void addMark(int startIndex, int endIndex, int signalIndex, const QString& title);
+  const QList<GraphMark*> getMarks() const { return m_marks; }
 
 private:
   QString m_name;
