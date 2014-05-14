@@ -8,7 +8,7 @@
 Em4305Analyzer::Em4305Analyzer() {
 }
 
-GraphAnalyzerInstance* Em4305Analyzer::configure(GraphWidget* graphWidget, GraphWidgetPluginInstance* graphWidgetPluginInstance) {
+GraphAnalyzerInstance* Em4305Analyzer::configure(GraphWidget*, GraphWidgetPluginInstance* graphWidgetPluginInstance) {
   Em4305AnalyzerConfigDialog dlg(graphWidgetPluginInstance);
   if(dlg.exec() == QDialog::Accepted) {
     GraphSignal* toDeviceSignal = dlg.getToDeviceSignal();
@@ -18,7 +18,7 @@ GraphAnalyzerInstance* Em4305Analyzer::configure(GraphWidget* graphWidget, Graph
   return NULL;
 }
 
-GraphAnalyzerInstance* Em4305Analyzer::create(GraphWidget* graphWidget, GraphWidgetPluginInstance* graphWidgetPluginInstance, const QString& config) {
+GraphAnalyzerInstance* Em4305Analyzer::create(GraphWidget*, GraphWidgetPluginInstance*, const QString& config) {
   int toDeviceSignalIndex = -1;
   QStringList args = config.split(';');
   foreach(QString arg, args) {

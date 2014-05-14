@@ -15,7 +15,8 @@ public:
   WidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name);
   virtual ~WidgetPluginInstance();
 
-  virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) = 0;
+  virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin);
+  virtual void set(const QString& name, const QString& value);
   virtual QWidget* getWidget() = 0;
   virtual void save(QTextStream& out) = 0;
   WidgetPlugin* getWidgetPlugin() { return m_widgetPlugin; }

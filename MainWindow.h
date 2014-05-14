@@ -23,17 +23,19 @@ public:
   explicit MainWindow(QWidget* parent = 0);
   ~MainWindow();
 
+  void save(const QString& fileName);
+  void load(const QString& fileName);
+
 protected:
   virtual void closeEvent(QCloseEvent* event);
 
 private slots:
-  void on_actionConnect_triggered();
   void onInputPluginConnected();
   void onInputPluginDisconnected();
   void onInputPluginReadyRead();
 
+  void on_actionConnect_triggered();
   void on_actionExit_triggered();
-
   void on_actionSave_triggered();
 
 private:
@@ -54,8 +56,8 @@ private:
   void runCommand(const QString& scope, const QString& functionName, QStringList args);
   void runSetCommand(const QString& name, const QString& value);
   void runAddCommand(const QString& type, const QString& name, int column, int row, int columnSpan, int rowSpan);
-  void save(const QString& fileName);
   void save(QFile& file);
+  void setConnectedInputPlugin(InputPlugin* inputPlugin);
   int findWidgetPluginInstance(WidgetPluginInstance* widgetPluginInstance);
   void run(const QString& line);
   QStringList splitArgs(const QString& argsString);

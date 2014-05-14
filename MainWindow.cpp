@@ -1,11 +1,12 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "plugins/graph/GraphWidget.h"
+#include "plugins/fileInput/FileInputPlugin.h"
 #include <QDebug>
 #include <QSettings>
 #include <QFileDialog>
 #include <QFile>
-#include <QErrorMessage>
+#include <QMessageBox>
 
 #define SETTINGS_PREFIX       "MainWindow/"
 #define INPUT_PLUGIN_SETTING  SETTINGS_PREFIX "InputPlugin"
@@ -51,22 +52,40 @@ void MainWindow::on_actionConnect_triggered() {
     m_ui->actionConnect->setText("Connecting");
 
     closeConnectedInputPlugin();
-
-    m_connectedInputPlugin = m_inputSelectComboBox->currentData().value<InputPlugin*>();
-    QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
-    QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
-    QObject::connect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
-
-    if(m_connectedInputPlugin == NULL) {
-      qDebug() << "Could not get selected plugin";
-      return;
-    }
+    setConnectedInputPlugin(m_inputSelectComboBox->currentData().value<InputPlugin*>());
     clearWidgets();
+
     m_connectedInputPlugin->connect();
 
     QSettings settings;
     settings.setValue(INPUT_PLUGIN_SETTING, m_connectedInputPlugin->getName());
     settings.sync();
+  }
+}
+
+void MainWindow::load(const QString& fileName) {
+  FileInputPlugin* fileInputPlugin = m_pluginManager.getFileInputPlugins();
+
+  closeConnectedInputPlugin();
+  setConnectedInputPlugin(fileInputPlugin);
+  clearWidgets();
+
+  fileInputPlugin->connect(fileName);
+}
+
+void MainWindow::setConnectedInputPlugin(InputPlugin* inputPlugin) {
+  if(m_connectedInputPlugin != NULL) {
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    QObject::disconnect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
+  }
+
+  m_connectedInputPlugin = inputPlugin;
+
+  if(m_connectedInputPlugin) {
+    QObject::connect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
+    QObject::connect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
+    QObject::connect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
   }
 }
 
@@ -79,13 +98,7 @@ void MainWindow::onInputPluginConnected() {
 void MainWindow::onInputPluginDisconnected() {
   m_ui->actionConnect->setText("Connect");
   m_ui->actionConnect->setEnabled(true);
-
-  if(m_connectedInputPlugin != NULL) {
-    QObject::disconnect(m_connectedInputPlugin, SIGNAL(connected()), this, SLOT(onInputPluginConnected()));
-    QObject::disconnect(m_connectedInputPlugin, SIGNAL(disconnected()), this, SLOT(onInputPluginDisconnected()));
-    QObject::disconnect(m_connectedInputPlugin, SIGNAL(readyRead()), this, SLOT(onInputPluginReadyRead()));
-    m_connectedInputPlugin = NULL;
-  }
+  setConnectedInputPlugin(NULL);
 }
 
 void MainWindow::closeConnectedInputPlugin() {
@@ -272,8 +285,7 @@ void MainWindow::on_actionSave_triggered() {
 void MainWindow::save(const QString& fileName) {
   QFile file(fileName);
   if(!file.open(QIODevice::WriteOnly)) {
-    QErrorMessage error(this);
-    error.showMessage("Could not open file for write");
+    QMessageBox::warning(this, "Error", "Could not open file for write");
     return;
   }
 

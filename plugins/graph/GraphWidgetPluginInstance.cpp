@@ -86,12 +86,6 @@ void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringL
     } else {
       qWarning() << "Graph: addSignal: Invalid number of arguments. Expected 4, found " << args.length();
     }
-  } else if(functionName == "set") {
-    if(args.length() == 2) {
-      set(args.at(0), args.at(1));
-    } else {
-      qWarning() << "Graph: set: Invalid number of arguments. Expected 2, found " << args.length();
-    }
   } else if(functionName == "clear") {
     if(args.length() == 0) {
       clear();
@@ -105,7 +99,7 @@ void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringL
       qWarning() << "Graph: addGraphAnalyzer: Invalid number of arguments. Expected 2, found " << args.length();
     }
   } else {
-    qWarning() << "Graph: Unknown Command" << functionName << args;
+    WidgetPluginInstance::runCommand(functionName, args, inputPlugin);
   }
 }
 
@@ -113,7 +107,7 @@ void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
   if(name == "timePerSample") {
     m_timePerSample = value.toDouble();
   } else {
-    qWarning() << "Graph: Unknown set command" << name;
+    WidgetPluginInstance::set(name, value);
   }
 }
 
@@ -277,11 +271,11 @@ int GraphWidgetPluginInstance::findSample(int startingSample, int signalNumber, 
   return -1;
 }
 
-bool GraphWidgetPluginInstance::sampleCompareNotEqual(double originalValue, double d1, double d2) {
+bool GraphWidgetPluginInstance::sampleCompareNotEqual(double originalValue, double, double d2) {
   return fabs(originalValue - d2) > 0.000000001;
 }
 
-bool GraphWidgetPluginInstance::sampleCompareEqual(double originalValue, double d1, double d2) {
+bool GraphWidgetPluginInstance::sampleCompareEqual(double originalValue, double, double d2) {
   return fabs(originalValue - d2) < 0.000000001;
 }
 

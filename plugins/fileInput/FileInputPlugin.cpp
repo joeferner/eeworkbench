@@ -2,6 +2,7 @@
 #include "FileInputConnectDialog.h"
 #include <QSettings>
 #include <QDebug>
+#include <QMessageBox>
 
 #define SETTINGS_PREFIX    "FileInputPlugin/"
 #define FILE_NAME_SETTING  SETTINGS_PREFIX "FileName"
@@ -18,14 +19,18 @@ void FileInputPlugin::connect() {
   dlg.setFileName(settings.value(FILE_NAME_SETTING, "").toString());
   if(dlg.exec() == QDialog::Accepted) {
     QString fileName = dlg.getFileName();
+    connect(fileName);
+  }
+}
 
-    settings.setValue(FILE_NAME_SETTING, fileName);
-    settings.sync();
+void FileInputPlugin::connect(const QString& fileName) {
+  QSettings settings;
+  settings.setValue(FILE_NAME_SETTING, fileName);
+  settings.sync();
 
-    m_file = openFile(fileName);
-    if(m_file) {
-      emit connected();
-    }
+  m_file = openFile(fileName);
+  if(m_file) {
+    emit connected();
   }
 }
 
@@ -40,11 +45,13 @@ void FileInputPlugin::onReadyRead() {
 QFile* FileInputPlugin::openFile(const QString& fileName) {
   QFile* file = new QFile(fileName);
   if(!file->exists()) {
+    QMessageBox::warning(NULL, "Error Opening File", QString("File %1 does not exist").arg(fileName));
     delete file;
     return NULL;
   }
   QObject::connect(file, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
   if(!file->open(QIODevice::ReadOnly)) {
+    QMessageBox::warning(NULL, "Error Opening File", QString("Could not open %1 for read").arg(fileName));
     delete file;
     return NULL;
   }

@@ -6,7 +6,7 @@ LabelWidgetPluginInstance::LabelWidgetPluginInstance(WidgetPlugin* widgetPlugin,
   m_widget = new LabelWidget(this);
 }
 
-void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin*) {
+void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) {
   if(functionName == "set") {
     if(args.length() == 2) {
       set(args.at(0), args.at(1));
@@ -14,7 +14,7 @@ void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringL
       qWarning() << "Label: set: Invalid number of arguments. Expected 2, found " << args.length();
     }
   } else {
-    qWarning() << "Label: Unknown Command" << functionName << args;
+    WidgetPluginInstance::runCommand(functionName, args, inputPlugin);
   }
 }
 
@@ -24,7 +24,7 @@ void LabelWidgetPluginInstance::set(const QString& name, const QString& value) {
   } else if(name == "text") {
     m_widget->setText(value);
   } else {
-    qWarning() << "Label: Unknown set command" << name;
+    WidgetPluginInstance::set(name, value);
   }
 }
 

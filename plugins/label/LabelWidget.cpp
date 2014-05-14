@@ -6,7 +6,6 @@ LabelWidget::LabelWidget(LabelWidgetPluginInstance* labelWidgetPluginInstance) :
   m_labelWidgetPluginInstance(labelWidgetPluginInstance) {
   m_layout = new QFormLayout();
   setLayout(m_layout);
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   m_title = new QLabel();
   m_title->setText("Title");

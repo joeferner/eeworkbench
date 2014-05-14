@@ -5,7 +5,7 @@
 #include "label/LabelPlugin.h"
 
 PluginManager::PluginManager() {
-  m_inputPlugins.append(new FileInputPlugin());
+  m_inputPlugins.append(m_fileInputPlugin = new FileInputPlugin());
   m_inputPlugins.append(new SerialPortPlugin());
 
   m_widgetPlugins.append(new GraphPlugin());

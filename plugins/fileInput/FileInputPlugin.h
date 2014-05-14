@@ -11,6 +11,7 @@ public:
   FileInputPlugin();
 
   virtual void connect();
+  void connect(const QString& fileName);
   virtual void disconnect();
   virtual bool isConnected();
   virtual bool readByte(uchar* ch);
