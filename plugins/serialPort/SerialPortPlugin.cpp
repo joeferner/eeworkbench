@@ -31,6 +31,8 @@ void SerialPortPlugin::connect() {
     settings.sync();
 
     openSerialPort(portName, baudRate);
+  } else {
+    emit disconnected();
   }
 }
 

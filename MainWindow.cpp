@@ -55,11 +55,11 @@ void MainWindow::on_actionConnect_triggered() {
     setConnectedInputPlugin(m_inputSelectComboBox->currentData().value<InputPlugin*>());
     clearWidgets();
 
-    m_connectedInputPlugin->connect();
-
     QSettings settings;
     settings.setValue(INPUT_PLUGIN_SETTING, m_connectedInputPlugin->getName());
     settings.sync();
+
+    m_connectedInputPlugin->connect();
   }
 }
 
