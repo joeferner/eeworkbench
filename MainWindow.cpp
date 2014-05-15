@@ -120,9 +120,11 @@ void MainWindow::on_actionExit_triggered() {
 }
 
 void MainWindow::clearWidgets() {
+  qDebug() << "clearing widgets";
   QList<WidgetPluginInstance*> widgetPluginInstances = m_widgets.values();
   m_widgets.clear();
   foreach(WidgetPluginInstance * widgetPluginInstance, widgetPluginInstances) {
+    m_layout->removeWidget(widgetPluginInstance->getWidget());
     delete widgetPluginInstance;
   }
 }
@@ -263,6 +265,8 @@ void MainWindow::runSetCommand(const QString& name, const QString& value) {
 }
 
 void MainWindow::runAddCommand(const QString& type, const QString& name, int column, int row, int columnSpan, int rowSpan) {
+  qDebug() << "adding widget" << name;
+
   const WidgetPlugin* widgetPlugin = m_pluginManager.getWidgetPlugin(type);
   if(widgetPlugin == NULL) {
     qWarning() << "Invalid type" << type << "for add.";

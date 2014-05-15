@@ -3,7 +3,6 @@
 #include <QSettings>
 #include <QDebug>
 #include <QThread>
-#include <QReadLocker>
 
 #define SETTINGS_PREFIX    "SerialPortPlugin/"
 #define PORT_NAME_SETTING  SETTINGS_PREFIX "PortName"
@@ -11,40 +10,9 @@
 
 #define CMD_CONNECT "!CONNECT\n"
 
-class SerialPortConnectThread : public QThread {
-public:
-  SerialPortConnectThread(SerialPortPlugin* serialPortPlugin) {
-    m_serialPortPlugin = serialPortPlugin;
-  }
-
-  void setPortName(const QString& portName) { m_portName = portName; }
-  void setBaudRate(int baudRate) { m_baudRate = baudRate; }
-
-  void run() {
-    if(m_serialPortPlugin->openSerialPort(m_portName, m_baudRate)) {
-      int retryCount = 3;
-      bool connectSuccess = false;
-      for(int i = 0; i < retryCount; i++) {
-        connectSuccess = m_serialPortPlugin->sendConnectCommand();
-        if(connectSuccess) {
-          break;
-        }
-      }
-      if(!connectSuccess) {
-        m_serialPortPlugin->disconnect();
-      }
-    }
-  }
-
-private:
-  SerialPortPlugin* m_serialPortPlugin;
-  QString m_portName;
-  int m_baudRate;
-};
-
 SerialPortPlugin::SerialPortPlugin() :
+  m_connecting(false),
   m_serialPort(NULL) {
-  m_connectThread = new SerialPortConnectThread(this);
 }
 
 void SerialPortPlugin::connect() {
@@ -62,39 +30,22 @@ void SerialPortPlugin::connect() {
     settings.setValue(BAUD_RATE_SETTING, baudRate);
     settings.sync();
 
-    m_connectThread->setPortName(portName);
-    m_connectThread->setBaudRate(baudRate);
-    m_connectThread->start();
+    openSerialPort(portName, baudRate);
   }
 }
 
-bool SerialPortPlugin::sendConnectCommand() {
-  QReadLocker lock(&m_serialPortLock);
+void SerialPortPlugin::sendConnectCommand() {
   if(m_serialPort->write("\n", 1) != 1) {
     qDebug() << "Could not send new line";
-    return false;
-  }
-  if(!m_serialPort->waitForBytesWritten(1000)) {
-    qDebug() << "Timeout waiting for bytes to be written";
-    return false;
+    return;
   }
 
   clearRead();
+
   if(m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT)) != strlen(CMD_CONNECT)) {
     qDebug() << "Could not send connect command";
-    return false;
+    return;
   }
-  if(!m_serialPort->waitForBytesWritten(1000)) {
-    qDebug() << "Timeout waiting for bytes to be written";
-    return false;
-  }
-  QString line = readLine(5000);
-  if(line.startsWith("+OK")) {
-    emit connected();
-    return true;
-  }
-  qDebug() << "Invalid line" << line;
-  return false;
 }
 
 void SerialPortPlugin::disconnect() {
@@ -105,65 +56,75 @@ void SerialPortPlugin::disconnect() {
 }
 
 bool SerialPortPlugin::isConnected() {
-  return m_serialPort != NULL;
+  return !m_connecting && m_serialPort != NULL;
 }
 
 bool SerialPortPlugin::openSerialPort(const QString& portName, int baudRate) {
-  QSerialPort* serialPort = new QSerialPort(portName);
-  QObject::connect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-  serialPort->setReadBufferSize(10 * 1024);
-  if(!serialPort->open(QIODevice::ReadWrite)) {
+  m_connecting = true;
+  m_serialPort = new QSerialPort(portName);
+  QObject::connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+  m_serialPort->setReadBufferSize(10 * 1024);
+  if(!m_serialPort->open(QIODevice::ReadWrite)) {
     qDebug() << "Could not open serial port";
     goto openFail;
   }
 
   qDebug() << "Serial port" << portName << " opened";
 
-  if(!serialPort->setBaudRate(baudRate)) {
+  if(!m_serialPort->setBaudRate(baudRate)) {
     qDebug() << "Could not set baud rate";
     goto openFail;
   }
 
-  if(!serialPort->setDataBits(QSerialPort::Data8)) {
+  if(!m_serialPort->setDataBits(QSerialPort::Data8)) {
     qDebug() << "Could not set data bits";
     goto openFail;
   }
 
-  if(!serialPort->setParity(QSerialPort::NoParity)) {
+  if(!m_serialPort->setParity(QSerialPort::NoParity)) {
     qDebug() << "Could not set parity";
     goto openFail;
   }
 
-  if(!serialPort->setStopBits(QSerialPort::OneStop)) {
+  if(!m_serialPort->setStopBits(QSerialPort::OneStop)) {
     qDebug() << "Could not set stop bits";
     goto openFail;
   }
 
-  qDebug() << "Baud rate:" << serialPort->baudRate();
-  qDebug() << "Data bits:" << serialPort->dataBits();
-  qDebug() << "Parity:" << serialPort->parity();
-  qDebug() << "Stop bits:" << serialPort->stopBits();
-  qDebug() << "Flow control:" << serialPort->flowControl();
-  qDebug() << "Read buffer size:" << serialPort->readBufferSize();
+  qDebug() << "Baud rate:" << m_serialPort->baudRate();
+  qDebug() << "Data bits:" << m_serialPort->dataBits();
+  qDebug() << "Parity:" << m_serialPort->parity();
+  qDebug() << "Stop bits:" << m_serialPort->stopBits();
+  qDebug() << "Flow control:" << m_serialPort->flowControl();
+  qDebug() << "Read buffer size:" << m_serialPort->readBufferSize();
 
-  {
-    QWriteLocker lock(&m_serialPortLock);
-    m_serialPort = serialPort;
-  }
+  sendConnectCommand();
   return true;
 
 openFail:
-  QObject::disconnect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-  delete serialPort;
+  QObject::disconnect(m_serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+  delete m_serialPort;
+  m_serialPort = NULL;
   return false;
 }
 
 void SerialPortPlugin::onReadyRead() {
-  emit readyRead();
+  if(m_connecting) {
+    if(m_serialPort->canReadLine()) {
+      char line[100];
+      qint64 lineLength = m_serialPort->readLine(line, 100);
+      if(lineLength > 0 && strncmp(line, "+OK", 3)) {
+        m_connecting = false;
+        emit connected();
+        emit readyRead();
+      }
+    }
+  } else {
+    emit readyRead();
+  }
 }
 
 void SerialPortPlugin::closeSerialPort() {
-  QWriteLocker lock(&m_serialPortLock);
   if(m_serialPort == NULL) {
     return;
   }
@@ -180,7 +141,6 @@ void SerialPortPlugin::closeSerialPort() {
 }
 
 bool SerialPortPlugin::readByte(uchar* ch) {
-  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return false;
   }
@@ -192,7 +152,6 @@ bool SerialPortPlugin::readByte(uchar* ch) {
 }
 
 qint64 SerialPortPlugin::read(unsigned char* buffer, qint64 bytesToRead) {
-  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return 0;
   }
@@ -204,7 +163,6 @@ qint64 SerialPortPlugin::read(unsigned char* buffer, qint64 bytesToRead) {
 }
 
 qint64 SerialPortPlugin::available() {
-  QReadLocker lock(&m_serialPortLock);
   if(!isConnected()) {
     return 0;
   }

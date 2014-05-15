@@ -6,8 +6,6 @@
 #include <QSerialPortInfo>
 #include <QReadWriteLock>
 
-class SerialPortConnectThread;
-
 class SerialPortPlugin : public InputPlugin {
   Q_OBJECT
 
@@ -28,14 +26,13 @@ private slots:
 protected:
   bool openSerialPort(const QString& portName, int baudRate);
   void closeSerialPort();
-  bool sendConnectCommand();
+  void sendConnectCommand();
 
   friend class SerialPortConnectThread;
 
 private:
-  QReadWriteLock m_serialPortLock;
+  bool m_connecting;
   QSerialPort* m_serialPort;
-  SerialPortConnectThread* m_connectThread;
 };
 
 #endif // SERIALPORTPLUGIN_H

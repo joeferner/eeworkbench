@@ -6,6 +6,10 @@ LabelWidgetPluginInstance::LabelWidgetPluginInstance(WidgetPlugin* widgetPlugin,
   m_widget = new LabelWidget(this);
 }
 
+LabelWidgetPluginInstance::~LabelWidgetPluginInstance() {
+  delete m_widget;
+}
+
 void LabelWidgetPluginInstance::runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin) {
   if(functionName == "set") {
     if(args.length() == 2) {

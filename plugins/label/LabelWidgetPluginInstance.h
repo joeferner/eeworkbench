@@ -9,6 +9,7 @@ class LabelWidgetPluginInstance : public WidgetPluginInstance {
 
 public:
   LabelWidgetPluginInstance(WidgetPlugin* widgetPlugin, const QString& name);
+  virtual ~LabelWidgetPluginInstance();
 
   virtual void runCommand(const QString& functionName, QStringList args, InputPlugin* inputPlugin);
   virtual QWidget* getWidget() { return m_widget; }
