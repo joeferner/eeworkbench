@@ -43,6 +43,7 @@ void SerialPortPlugin::sendConnectCommand() {
   }
 
   clearRead();
+  QThread::msleep(100);
 
   if(m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT)) != strlen(CMD_CONNECT)) {
     qDebug() << "Could not send connect command";
