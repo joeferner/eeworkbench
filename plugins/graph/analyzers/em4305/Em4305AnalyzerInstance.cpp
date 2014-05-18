@@ -157,7 +157,7 @@ QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWi
       i = zeroEndIndex;
     }
 
-    else {
+    else if(tOne > (RF_PERIOD_SECONDS * 32)) {
       while(tOne > (RF_PERIOD_SECONDS * 32)) {
         data = new BitData();
         data->bit = 1;
@@ -167,6 +167,10 @@ QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWi
         tOne -= RF_PERIOD_SECONDS * 32;
         i = data->endIndex;
       }
+    }
+
+    else {
+      i++;
     }
   }
   return results;

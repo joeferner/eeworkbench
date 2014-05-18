@@ -14,6 +14,7 @@ class GraphWidget : public QAbstractScrollArea {
 public:
   explicit GraphWidget(GraphWidgetPluginInstance* graphWidgetPluginInstance);
   void refreshAnalyzers();
+  void setPixelsPerSample(double pixelsPerSample);
 
 signals:
 

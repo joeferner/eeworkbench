@@ -108,6 +108,8 @@ void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
     m_timePerSample = value.toDouble();
   } else if(name == "sampleRate") {
     m_timePerSample = 1.0 / value.toDouble();
+  } else if(name == "pixelsPerSample") {
+    m_widget->setPixelsPerSample(value.toDouble());
   } else {
     WidgetPluginInstance::set(name, value);
   }
