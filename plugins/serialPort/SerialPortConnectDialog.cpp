@@ -25,6 +25,12 @@ void SerialPortConnectDialog::refreshPortNameList() {
 }
 
 void SerialPortConnectDialog::setPortName(const QString& portName) {
+  for(int i = 0; i < ui->portName->count(); i++) {
+    if(portName == ui->portName->itemData(i).toString()) {
+      ui->portName->setCurrentIndex(i);
+      return;
+    }
+  }
   ui->portName->setEditText(portName);
 }
 
