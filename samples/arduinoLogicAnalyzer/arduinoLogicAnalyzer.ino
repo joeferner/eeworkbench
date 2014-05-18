@@ -1,15 +1,15 @@
 
 #include <stdint.h>
 
-//#define TIME_PER_SAMPLE   0.000002
-#define TIME_PER_SAMPLE   0.00002
+#define TIME_PER_SAMPLE   0.000004
 
 #define DEBUG_PIN         2
 #define TICKS_PER_SAMPLE  (F_CPU * TIME_PER_SAMPLE)
 
-#define BUFFER_SIZE 512
-char buffer[BUFFER_SIZE];
-uint16_t bufferOffset;
+#define BUFFER_SIZE 1024
+volatile char buffer[BUFFER_SIZE];
+volatile char* bufferWrite;
+volatile char* bufferEnd;
 
 #define COMMAND_BUFFER_SIZE 100
 char commandBuffer[COMMAND_BUFFER_SIZE];
@@ -43,7 +43,7 @@ void setup() {
 
   cli();
 
-//  TIMSK0 = 0; // disable timer0 interrupt
+  TIMSK0 = 0; // disable timer0 interrupt
 
   TCCR1A = 0;
   TCCR1B = 0;
@@ -70,7 +70,7 @@ void setup() {
   
   disableTimer1Interrupt();
 
-  bufferOffset = 0;
+  bufferWrite = bufferEnd = (buffer + BUFFER_SIZE);
   triggered = false;
   
   sei();
@@ -107,10 +107,10 @@ void loop() {
   }
   
   if(!isTimer1Enabled() && t && !triggered) {
-    bufferOffset = 0;
+    bufferWrite = buffer;
     triggered = true;
     enableTimer1Interrupt();
-    while(bufferOffset < BUFFER_SIZE) {
+    while(bufferWrite != bufferEnd) {
       digitalWrite(DEBUG_PIN, digitalRead(DEBUG_PIN) ^ 1);
     }
     digitalWrite(DEBUG_PIN, 0);
@@ -132,6 +132,7 @@ void enableTimer1Interrupt() {
 }
 
 void writeBufferData() {
+  Serial.println("!main.clear");
   Serial.print("!main.beginData ");
   Serial.println(BUFFER_SIZE);
   for(int i = 0; i < BUFFER_SIZE; i++) {
@@ -165,8 +166,8 @@ void clearWorkbench() {
 }
 
 ISR(TIMER1_COMPA_vect) {
-  buffer[bufferOffset++] = PORTB << 2;
-  if(bufferOffset == BUFFER_SIZE) {
+  *bufferWrite++ = PINB << 2;
+  if(bufferWrite == bufferEnd) {
     disableTimer1Interrupt();
   }
 }

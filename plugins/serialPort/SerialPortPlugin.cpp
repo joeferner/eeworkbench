@@ -41,14 +41,18 @@ void SerialPortPlugin::sendConnectCommand() {
     qDebug() << "Could not send new line";
     return;
   }
+  if(m_serialPort->write("\n", 1) != 1) {
+    qDebug() << "Could not send new line";
+    return;
+  }
 
   clearRead();
-  QThread::msleep(100);
 
   if(m_serialPort->write(CMD_CONNECT, strlen(CMD_CONNECT)) != strlen(CMD_CONNECT)) {
     qDebug() << "Could not send connect command";
     return;
   }
+  onReadyRead();
 }
 
 void SerialPortPlugin::disconnect() {
@@ -113,10 +117,12 @@ openFail:
 
 void SerialPortPlugin::onReadyRead() {
   if(m_connecting) {
+    qDebug() << "onReadyRead";
     if(m_serialPort->canReadLine()) {
       char line[100];
       qint64 lineLength = m_serialPort->readLine(line, 100);
-      if(lineLength > 0 && strncmp(line, "+OK", 3)) {
+      qDebug() << "onReadyRead" << line;
+      if((lineLength > 0) && (strncmp(line, "+OK", 3) == 0)) {
         m_connecting = false;
         emit connected();
         emit readyRead();
