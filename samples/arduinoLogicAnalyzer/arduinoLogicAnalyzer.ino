@@ -2,16 +2,16 @@
 #include <stdint.h>
 #include <util/delay.h>
 
-#define SAMPLE_RATE       250000
+#define SAMPLE_RATE       200000
 
 #define DEBUG_PIN         2  /* PD2 */
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1300
 volatile char buffer[BUFFER_SIZE];
 volatile char* bufferWrite;
 volatile char* bufferEnd;
 
-#define COMMAND_BUFFER_SIZE 100
+#define COMMAND_BUFFER_SIZE 20
 char commandBuffer[COMMAND_BUFFER_SIZE];
 int commandBufferOffset;
 
