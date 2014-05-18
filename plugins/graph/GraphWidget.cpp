@@ -334,6 +334,9 @@ void GraphWidget::updateHorizontalScrollBar() {
   int bufferAvailable = m_graphWidgetPluginInstance->getBufferAvailable();
 
   int scrollableWidth = (m_pixelsPerSample * (double)bufferAvailable) - (viewport()->width() - m_marginRight) + m_marginLeft;
+  if(scrollableWidth < 0) {
+    scrollableWidth = 0;
+  }
   int currentMax = horizontalScrollBar()->maximum();
   if(scrollableWidth != currentMax) {
     horizontalScrollBar()->setMaximum(scrollableWidth);
