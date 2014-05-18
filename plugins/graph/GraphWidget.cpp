@@ -309,6 +309,7 @@ void GraphWidget::paintMeasurements(QPainter& painter) {
   painter.setBrush(brush);
 
   QRect rect(viewport()->width() - m_marginRight, 0, m_marginRight, viewport()->height());
+  paintMeasurementField(painter, rect, "Sampel Rate:", UnitsUtil::toString(m_graphWidgetPluginInstance->getSampleRate(), "Hz"));
   paintMeasurementField(painter, rect, "Channel:", channel);
   paintMeasurementField(painter, rect, "Sample:", sampleString);
   paintMeasurementField(painter, rect, "Time:", time);

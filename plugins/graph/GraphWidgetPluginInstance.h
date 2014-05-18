@@ -44,6 +44,7 @@ public:
   int getBufferWritePos() const { return m_bufferWritePos; }
   int getBufferAvailable() const { return m_bufferAvailable; }
   double getTimePerSample() const { return m_timePerSample; }
+  int getSampleRate() const { return 1.0 / m_timePerSample; }
   int getBytesPerSample() const;
   double getValue(int sample, int signal);
   int getBinaryValue(int sample, int signal);

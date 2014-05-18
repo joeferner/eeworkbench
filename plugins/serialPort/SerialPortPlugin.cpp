@@ -45,6 +45,7 @@ void SerialPortPlugin::sendConnectCommand() {
     qDebug() << "Could not send new line";
     return;
   }
+  m_serialPort->waitForBytesWritten(100);
 
   clearRead();
 
@@ -52,6 +53,7 @@ void SerialPortPlugin::sendConnectCommand() {
     qDebug() << "Could not send connect command";
     return;
   }
+  m_serialPort->waitForBytesWritten(100);
   onReadyRead();
 }
 

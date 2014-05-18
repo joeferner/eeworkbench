@@ -106,6 +106,8 @@ void GraphWidgetPluginInstance::runCommand(const QString& functionName, QStringL
 void GraphWidgetPluginInstance::set(const QString& name, const QString& value) {
   if(name == "timePerSample") {
     m_timePerSample = value.toDouble();
+  } else if(name == "sampleRate") {
+    m_timePerSample = 1.0 / value.toDouble();
   } else {
     WidgetPluginInstance::set(name, value);
   }
