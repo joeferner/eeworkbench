@@ -241,6 +241,14 @@ int GraphWidgetPluginInstance::getBinaryValue(int sample, int signalIndex) {
   return v > mid ? 1 : 0;
 }
 
+int GraphWidgetPluginInstance::getBinaryValues(int startSample, int signal, unsigned char* buffer, int bufferLength) {
+  int i;
+  for(i = startSample; i < qMin(bufferLength, m_bufferAvailable); i++) {
+    buffer[i - startSample] = getBinaryValue(i, signal);
+  }
+  return i - startSample;
+}
+
 int GraphWidgetPluginInstance::findBinarySample(int startingSample, int signalNumber, int value) {
   return findBinarySample(startingSample, signalNumber, 1, value);
 }

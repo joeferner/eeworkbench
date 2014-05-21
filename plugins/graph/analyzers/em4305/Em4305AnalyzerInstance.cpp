@@ -121,26 +121,20 @@ void Em4305AnalyzerInstance::refresh(GraphWidgetPluginInstance* graphWidgetPlugi
   }
 }
 
-QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWidgetPluginInstance* graphWidgetPluginInstance, int i, int signalIndex) {
+QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWidgetPluginInstance* graphWidgetPluginInstance, int startSample, int signalIndex) {
   QList<BitData*> results;
   int dataAvailable = graphWidgetPluginInstance->getBufferAvailable();
+  unsigned char* dataBuffer = new unsigned char[dataAvailable];
+  int dataLength = graphWidgetPluginInstance->getBinaryValues(startSample, signalIndex, dataBuffer, dataAvailable);
+
   int oneStartIndex, oneEndIndex;
   int zeroStartIndex, zeroEndIndex;
-  BitData* data;
-  while(i < dataAvailable) {
-    oneStartIndex = graphWidgetPluginInstance->findBinarySample(i, signalIndex, 1);
-    if(oneStartIndex < 0) {
-      return results;
+  for(int i = 0; i < dataLength; ) {
+    if(!findBit(dataBuffer, dataLength, graphWidgetPluginInstance->getTimePerSample(), i, 1, &oneStartIndex, &oneEndIndex)) {
+      break;
     }
-
-    zeroStartIndex = oneEndIndex = graphWidgetPluginInstance->findBinarySample(oneStartIndex, signalIndex, 0);
-    if(oneEndIndex < 0) {
-      return results;
-    }
-
-    zeroEndIndex = graphWidgetPluginInstance->findBinarySample(zeroStartIndex, signalIndex, 1);
-    if(zeroEndIndex < 0) {
-      return results;
+    if(!findBit(dataBuffer, dataLength, graphWidgetPluginInstance->getTimePerSample(), oneEndIndex, 0, &zeroStartIndex, &zeroEndIndex)) {
+      break;
     }
 
     double tOne = (oneEndIndex - oneStartIndex) * graphWidgetPluginInstance->getTimePerSample();
@@ -149,23 +143,23 @@ QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWi
     // zero
     if((tOne > (RF_PERIOD_SECONDS * 15)) && (tOne < (RF_PERIOD_SECONDS * 21))
         && (tZero > (RF_PERIOD_SECONDS * 11)) && (tZero < (RF_PERIOD_SECONDS * 17))) {
-      data = new BitData();
+      BitData* data = new BitData();
       data->bit = 0;
-      data->startIndex = oneStartIndex;
-      data->endIndex = zeroEndIndex;
+      data->startIndex = startSample + oneStartIndex;
+      data->endIndex = startSample + zeroEndIndex;
       results.append(data);
       i = zeroEndIndex;
     }
 
     else if(tOne > (RF_PERIOD_SECONDS * 32)) {
       while(tOne > (RF_PERIOD_SECONDS * 32)) {
-        data = new BitData();
+        BitData* data = new BitData();
         data->bit = 1;
-        data->startIndex = oneStartIndex;
-        data->endIndex = oneStartIndex + ((RF_PERIOD_SECONDS * 32) / graphWidgetPluginInstance->getTimePerSample());
+        data->startIndex = startSample + oneStartIndex;
+        data->endIndex = startSample + oneStartIndex + ((RF_PERIOD_SECONDS * 32) / graphWidgetPluginInstance->getTimePerSample());
         results.append(data);
         tOne -= RF_PERIOD_SECONDS * 32;
-        i = data->endIndex;
+        i = data->endIndex - startSample;
       }
     }
 
@@ -173,7 +167,45 @@ QList<Em4305AnalyzerInstance::BitData*> Em4305AnalyzerInstance::readBits(GraphWi
       i++;
     }
   }
+
+  delete dataBuffer;
   return results;
+}
+
+bool Em4305AnalyzerInstance::findBit(unsigned char* data, int dataLen, double timePerSample, int dataIndex, int bitToFind, int* startIndex, int* endIndex) {
+  int minBitWidth = (5 * RF_PERIOD_SECONDS) / timePerSample;
+  int lastDataChangeIndex = dataIndex;
+  unsigned char lastDataBit = data[dataIndex];
+  *startIndex = dataIndex;
+  if(bitToFind) {
+    for(int i = dataIndex; i < dataLen; i++) {
+      if(data[i] != lastDataBit) {
+        lastDataBit = data[i];
+        lastDataChangeIndex = i;
+      }
+      if((i - lastDataChangeIndex) > minBitWidth) {
+        *endIndex = lastDataChangeIndex;
+        return true;
+      }
+    }
+  } else {
+    for(int i = dataIndex; i < dataLen; i++) {
+      if(data[i] != lastDataBit) {
+        *startIndex = i;
+        lastDataBit = data[i];
+        lastDataChangeIndex = i;
+      }
+      if((i - lastDataChangeIndex) > minBitWidth) {
+        // find the end of the zero bit
+        for(; (i < dataLen) && (data[i] == lastDataBit); i++) {
+        }
+        *endIndex = i;
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 bool Em4305AnalyzerInstance::findFieldStop(GraphWidgetPluginInstance* graphWidgetPluginInstance, int i, int signalIndex, int* startIndex, int* endIndex) {

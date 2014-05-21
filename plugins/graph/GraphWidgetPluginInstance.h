@@ -48,6 +48,7 @@ public:
   int getBytesPerSample() const;
   double getValue(int sample, int signal);
   int getBinaryValue(int sample, int signal);
+  int getBinaryValues(int startSample, int signal, unsigned char* buffer, int bufferLength);
   int findSample(int startingSample, int signalNumber, int direction, sampleCompareFn fn);
   int findBinarySample(int startingSample, int signalNumber, int value);
   int findBinarySample(int startingSample, int signalNumber, int direction, int value);

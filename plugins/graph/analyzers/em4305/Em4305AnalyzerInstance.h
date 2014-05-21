@@ -24,6 +24,7 @@ private:
 
   bool findFieldStop(GraphWidgetPluginInstance* graphWidgetPluginInstance, int i, int signalIndex, int* startIndex, int* endIndex);
   QList<BitData*> readBits(GraphWidgetPluginInstance* graphWidgetPluginInstance, int i, int signalIndex);
+  bool findBit(unsigned char* data, int dataLen, double timePerSample, int dataIndex, int bitToFind, int* startIndex, int* endIndex);
 };
 
 #endif // EM4305ANALYZERINSTANCE_H
